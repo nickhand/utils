@@ -1,0 +1,15 @@
+#!/bin/env python
+
+import catalog
+import sys
+import os
+
+file = sys.argv[1]
+
+if 'pickle' in file:
+    cat = catalog.readFromPickleFile(file)
+elif 'txt' in file:
+    cat = catalog.readFromASCII(file)
+
+    
+print cat
