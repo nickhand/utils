@@ -1,0 +1,61 @@
+mode = '3D'
+
+######  compute Tsq values from stacked T values
+
+computeStat = True
+
+statistic = 'pairwise'
+
+stackingInputDir1 = '/u/nhand/thesis/paper2/simWork/stacking/catalogsWithT/'
+stackingFileRoot1 = '148_ksz_-40.0_convolve_pp3_window3x'
+
+L_cut = [8000, 20000]
+
+fitTofz = False
+fittingParams = {'nBins': 6, 'plot': False}
+
+subtraction_variable1 = None
+subtraction_sigma1 = 0.01
+subtraction_log1 = False
+
+
+subtraction_variable2 = None
+subtraction_sigma2 = 0.01
+subtraction_log2 = False
+
+binWidth3D = 10 # in Mpc
+maxRadius3D = 150 # in Mpc
+minRadius3D = 0 # in Mpc
+
+binWidth2D = 2./60. # in degrees
+maxRadius2D = 30./60.
+
+altWeights = False
+
+computeBootstrapErrors = False
+N_resamples = 100
+
+computeRandomErrors = False
+randomErrorsParamFile = './randomErrors.dict'
+
+outRoot = '148_ksz_-40.0_pairwise_unweighted_8K_to_20K'
+
+filter = 'window3x'
+includeBins = [0, 1, 2, 3, 4]
+totalBins = 6
+
+realSpace = False
+subtractMean = False
+
+#zeroOrderFile = './KSZ_correlation_bins/148_skymap_-20.0_correlation_random3D_2D_01234_window2x_withzero_bins.pickle'
+zeroOrderFile = None
+
+binnedCols = {      'bin' : {'desc' : 'bin number', 'order' : 0, 'type': int, 'fmt' : '%10d', 'default' : -1} , \
+               'distance' : {'desc' : 'max distance in this bin', 'order' : 1, 'type' : float, 'fmt' : '%15.3e', 'default' : -999.}, \
+		   'stat' : {'desc' : 'statistic', 'order' : 2, 'type' : float, 'fmt' : '%15.3f', 'default' : -999.}, \
+		    'err' : {'desc' : 'statistic error', 'order' : 3, 'type' : float, 'fmt' : '%15.3f', 'default' : -999.}, \ 
+                 'N_bin'  : {'desc' : 'number of pairs in bin'  , 'order' : 4, 'type' : int,   'fmt' : '%10d',   'default' : 0 }, \
+                 'mean_sep' : {'desc' : 'mean separation in bin', 'order' : 5, 'type' : float, 'fmt' : '%15.3f', 'default' : -999.}}
+
+###### plot and fit theory curve
+ plotAndFit = False

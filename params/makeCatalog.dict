@@ -1,0 +1,28 @@
+band = 148
+data =  '/u/nhand/ACT_148/data/sourcesRemoved_ACT_148_equ_season234_oct2011_1way/data_0.0.fits'
+detectionMask =  None
+excludeBorderPixels = 10
+extraFilter = '/u/nhand/ACT_148/noiseEstimate/highPassFilter.fits'
+fluxReconstructionWindowHalfWidth = 0.25
+forceGaussian = False
+id_prefix = 'ACT-CL'
+includeWeightInCatalog = ['integration_time', 'Integration time (min/sq-arcmin)', 0.00033333333333333332]
+
+inputDir = None
+minPixPerGroup = 1
+noiseSpectrum = None
+objectType = 'sources'
+outputDir = '.'
+rms = None
+signalFWHM = 1.3999999999999999
+
+signalTransform = '/u/nhand/ACT_148/windowAR1/B_l_AR1_unit_spatial_amplitude.fits'
+#signalTransform = '/u/nhand/ACT_148/betaModel_0.86/ftsWithBeam/betaftWithBeam_thetaC_1.00.fits'
+
+snrThreshold = 5.0
+solidAngle = 1.295394280096142e-06
+subcatalogOffsets = None
+submaps = [None]
+verticalFilterHalfwidthEll = 100
+weight = '/u/nhand/ACT_148/data/ACT_148_equ_season234_oct2011_1way/weight_0.0.fits'
+simCatalogNames = None
