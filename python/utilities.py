@@ -80,8 +80,8 @@ def centroid(mp):
     Ny = mp.Ny
 
     xsum = 0.0
-    for i in np.range(0, Ny):
-        for j in np.range(0, Nx):
+    for i in numpy.range(0, Ny):
+        for j in numpy.range(0, Nx):
             xsum += data[i, j] * (j+1)
 
     ysum = 0.0
@@ -89,7 +89,7 @@ def centroid(mp):
         for j in range(0, Ny):
             ysum += data[j, i] * (j+1)
         
-    totalsum = np.sum(data[:,:])
+    totalsum = numpy.sum(data[:,:])
     xcm = xsum / totalsum
     ycm = ysum / totalsum
     cmdeg = mp.pixToSky(xcm, ycm)
@@ -120,7 +120,7 @@ def h_sz (nu):
 def convolveWithBeam(mp, beamFile, template = None, pixelPitch = None):
     """
     @brief convolve litemap object with ACT beam
-    @param mp input litemap object
+    @param mp inumpyut litemap object
     @param beamFile filename of the beam data
     @param template template litemap object
     @param pixelPitch pixelPitch of mp
@@ -136,8 +136,8 @@ def convolveWithBeam(mp, beamFile, template = None, pixelPitch = None):
         ell.append(float(fields[0]))
         wl.append(float(fields[1]))
 
-    ell = np.array(ell)
-    wl  = np.array(wl)
+    ell = numpy.array(ell)
+    wl  = numpy.array(wl)
 
     if (template == None):
         t = mp.copy()
@@ -146,18 +146,18 @@ def convolveWithBeam(mp, beamFile, template = None, pixelPitch = None):
     t.data[:] = 0.0
     ft = fftTools.fftFromLiteMap(t)
 
-    l_f = np.floor(ft.modLMap)
-    l_c = np.ceil(ft.modLMap)
+    l_f = numpy.floor(ft.modLMap)
+    l_c = numpy.ceil(ft.modLMap)
 
-    for i in xrange(np.shape(ft.kMap)[0]):
-        for j in xrange(np.shape(ft.kMap)[1]):
+    for i in xrange(numpy.shape(ft.kMap)[0]):
+        for j in xrange(numpy.shape(ft.kMap)[1]):
             w_lo = wl[l_f[i,j]]
             w_hi = wl[l_c[i,j]]
             trueL = ft.modLMap[i,j]
             w = (w_hi-w_lo)*(trueL - l_f[i,j]) + w_lo
             ft.kMap[i,j] = w
 
-    t.data = np.sqrt(abs(ft.kMap))
+    t.data = numpy.sqrt(abs(ft.kMap))
 
     mp_ft = fftTools.fftFromLiteMap(mp)
 
@@ -165,7 +165,7 @@ def convolveWithBeam(mp, beamFile, template = None, pixelPitch = None):
         t = liteMap.upgradePixelPitch(t, pixelPitch)
 
     mp_ft.kMap *= t.data
-    data_conv = np.real(np.fft.ifft2(mp_ft.kMap))
+    data_conv = numpy.real(numpy.fft.ifft2(mp_ft.kMap))
     t.data[:] = data_conv[:]
 
     return t
@@ -185,15 +185,15 @@ def mask(lm, ra, dec, hw = 7):
     x = range(0, lm.Nx)
     y = range(0, lm.Ny)
 
-    xx, yy = np.meshgrid(x, y)
+    xx, yy = numpy.meshgrid(x, y)
 
     x0, y0 = lm.skyToPix(ra, dec)
-    dist = np.sqrt((xx - x0)**2 + (yy - y0)**2)
+    dist = numpy.sqrt((xx - x0)**2 + (yy - y0)**2)
 
-    a,b = np.where((dist > 15) * (dist < 25))
-    avg = np.mean(lm.data[a,b])
+    a,b = numpy.where((dist > 15) * (dist < 25))
+    avg = numpy.mean(lm.data[a,b])
 
-    i, j = np.where(dist < hw)
+    i, j = numpy.where(dist < hw)
     lm.data[i,j] = avg
 
     masked = liteMap.liteMapFromDataAndWCS(lm.data, lm.wcs)
@@ -203,9 +203,9 @@ def mask(lm, ra, dec, hw = 7):
 
 def bin(arrayX, arrayY, nBins, log = False, Nconst=False, norm=None, operator=numpy.mean):
     """
-    @brief bin the input arrays using the given operator
-    @param arrayX x input array
-    @param arrayY y input array to be binned
+    @brief bin the inumpyut arrays using the given operator
+    @param arrayX x inumpyut array
+    @param arrayY y inumpyut array to be binned
     @param nBins number of bins to use
     @param log boolean denoting whether to use even bins in logspace
     @param Nconst boolean denoting whether to have fixed number of points per bin
@@ -219,8 +219,8 @@ def bin(arrayX, arrayY, nBins, log = False, Nconst=False, norm=None, operator=nu
     """
     
     # convert to arrays
-    arrayX = np.array(arrayX)
-    arrayY = np.array(arrayY)
+    arrayX = numpy.array(arrayX)
+    arrayY = numpy.array(arrayY)
 
     if Nconst == True:
         
@@ -236,9 +236,9 @@ def bin(arrayX, arrayY, nBins, log = False, Nconst=False, norm=None, operator=nu
         
 
         # sort arrays
-        index = np.argsort(arrayX)
+        index = numpy.argsort(arrayX)
         arrayY = arrayY[index]
-        arrayX = np.sort(arrayX)
+        arrayX = numpy.sort(arrayX)
         
     
 
@@ -251,35 +251,35 @@ def bin(arrayX, arrayY, nBins, log = False, Nconst=False, norm=None, operator=nu
             if norm is not None:
                 w = norm[i*Nwidth:(i+1)*Nwidth]
             
-            X.append(np.mean(x))
+            X.append(numpy.mean(x))
             if norm is None:
                 Y.append(operator(y))
             else:
-                Y.append(np.sum(y)/np.sum(w))
+                Y.append(numpy.sum(y)/numpy.sum(w))
                 
             weights.append(len(x))
             
-            Ystd.append(np.std(y))
+            Ystd.append(numpy.std(y))
 
     
         # converts lists to arrays
-        X = np.array(X)
-        Y = np.array(Y)
-        Ystd = np.array(Ystd)
-        weights = np.array(weights)
+        X = numpy.array(X)
+        Y = numpy.array(Y)
+        Ystd = numpy.array(Ystd)
+        weights = numpy.array(weights)
 
         
         return X, Y, Ystd, weights
 
     else:
         # define min and max distance and number of bins
-        binWidth = (np.amax(arrayX) - np.amin(arrayX))/nBins
+        binWidth = (numpy.amax(arrayX) - numpy.amin(arrayX))/nBins
 
-        max = np.amax(arrayX)
-        min = np.amin(arrayX)
+        max = numpy.amax(arrayX)
+        min = numpy.amin(arrayX)
 
         if log:
-            bins = np.logspace(np.log10(min), np.log10(max), nBins)
+            bins = numpy.logspace(numpy.log10(min), numpy.log10(max), nBins)
     
         # initialize lists for later use 
         X = []          
@@ -289,9 +289,9 @@ def bin(arrayX, arrayY, nBins, log = False, Nconst=False, norm=None, operator=nu
         
 
         # sort arrays
-        index = np.argsort(arrayX)
+        index = numpy.argsort(arrayX)
         arrayY = arrayY[index]
-        arrayX = np.sort(arrayX)
+        arrayX = numpy.sort(arrayX)
 
     
 
@@ -300,30 +300,30 @@ def bin(arrayX, arrayY, nBins, log = False, Nconst=False, norm=None, operator=nu
 
             if log:
                 if (i == len(bins) - 1):
-                    cond = np.where(arrayX >= bins[i])
+                    cond = numpy.where(arrayX >= bins[i])
                 else:
-                    cond = np.where((arrayX >= bins[i])*(arrayX < bins[i+1]))
+                    cond = numpy.where((arrayX >= bins[i])*(arrayX < bins[i+1]))
             else:
                 cut_low = min + i*binWidth
                 cut_high = min + (i+1)*binWidth
         
-                cond = np.where((arrayX >= cut_low)*(arrayX < cut_high))
+                cond = numpy.where((arrayX >= cut_low)*(arrayX < cut_high))
         
             x = arrayX[cond]
             y = arrayY[cond]
     
         
-            X.append(np.mean(x))
+            X.append(numpy.mean(x))
             Y.append(operator(y))
             weights.append(len(x))
-            Ystd.append(np.std(y))
+            Ystd.append(numpy.std(y))
 
     
         # converts lists to arrays
-        X = np.array(X)
-        Y = np.array(Y)
-        Ystd = np.array(Ystd)
-        weights = np.array(weights)
+        X = numpy.array(X)
+        Y = numpy.array(Y)
+        Ystd = numpy.array(Ystd)
+        weights = numpy.array(weights)
 
         
         return X, Y, Ystd, weights
@@ -403,7 +403,7 @@ def getSigmaFromChiSquared(chi_sq, dof):
 
     def func2(x):
 
-        val = quad(lambda y: 1.0/np.sqrt(2.0*np.pi)*np.exp(-y**2/2.0), -x, x)
+        val = quad(lambda y: 1.0/numpy.sqrt(2.0*numpy.pi)*numpy.exp(-y**2/2.0), -x, x)
 
         return val[0] - p
 
