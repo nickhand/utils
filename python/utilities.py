@@ -6,6 +6,7 @@ from scipy.optimize import bisect
 from scipy.integrate import quad
 import pylab
 from physical_constants import *
+from flipper import *
 
 
 def B_nu(nu, T = T_CMB):
