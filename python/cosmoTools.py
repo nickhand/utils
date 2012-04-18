@@ -1,5 +1,6 @@
 from scipy.integrate import quad
 import numpy
+import physical_constants as c
         
 
 class cosmology:
@@ -34,18 +35,16 @@ class cosmology:
     def Hubble(self, z):
         """computes H(z)"""
 
-        H_0 = 100.*self.h
         e = self.E(z)
 
-        return H_0*e
+        return self.H0*e
     
     
     def comovingDist(self, z):
         """computes comoving distances for redshift, z"""
         
-        H_0 = 100*self.h        #in km/s/Mpc    
     
-        integral  = quad(lambda x: (self.c)/(H_0*numpy.sqrt(self.omega_m0*(1+x)**3 + 
+        integral  = quad(lambda x: (self.c)/(self.H0*numpy.sqrt(self.omega_m0*(1+x)**3 + 
             self.omega_lam0 + self.omega_r0*(1+z)**4 + (1 - self.omega0)*(1+x)**2)), 0, z)
         
         # flat universe
@@ -80,9 +79,8 @@ class cosmology:
     def comovingVolume(self, z1, z2):
         """ computes comoving volume between redshifts z1 and z2 """
 
-        H_0 = 100*self.h
 
-        vol = quad(lambda x: (self.c/H_0)*(1+x)**2 * self.angDiameterDist(x)**2 / self.E(x),  z1, z2)
+        vol = quad(lambda x: (self.c/self.H0)*(1+x)**2 * self.angDiameterDist(x)**2 / self.E(x),  z1, z2)
         
         return 4*numpy.pi*vol[0]
         
@@ -115,14 +113,31 @@ class cosmology:
         return age of universe at redshift z in years
         """
     
-        H_0 = 100*self.h/(978.46e9)     #in 1/years    
+        H_0 = self.H0 * c.MpcPerKm    #in 1/seconds   
     
         a = 1./(1.+z)
         integral  = quad(lambda x: 1.0/(H_0*x*numpy.sqrt(self.omega_m0/x**3 + self.omega_lam0 
            + self.omega_r0/x**4 + (1 - self.omega0)/x**2)), 0, a)
             
-        return integral[0] # in years
+        return integral[0]/60./60./24./365. # in years
         
     def getAgeOfUniverse(self):
-    
+        """
+        return the age of the universe in years
+        """
+        
         return self.getAgeAtZ(0.0)
+        
+            
+    def getParticleHorizon(self, z):
+        """
+        return the particle horizon (physical dist that light can travel from z' = infty to z' = z
+        returns result in Mpc 
+        """
+           
+        a = 1./(1.+z)
+        integral  = quad(lambda x: self.c/(self.H0*x**2*numpy.sqrt(self.omega_m0/x**3 + self.omega_lam0 
+           + self.omega_r0/x**4 + (1 - self.omega0)/x**2)), 0, a)
+            
+        return integral[0]*a # in Mpc
+        
