@@ -7,7 +7,7 @@ class cosmology:
     """useful functions dependent upon cosmological parameters"""
 
     
-    def __init__(self, omega_m0 = 0.274, omega_lam0 = 0.726, omega_r0 = None, h=0.71):
+    def __init__(self, omega_m0 = 0.274, omega_lam0 = 0.726, omega_r0 = None, h=0.72):
        
         self.omega_m0 = omega_m0
         self.omega_lam0 = omega_lam0
@@ -28,16 +28,16 @@ class cosmology:
     def E(self, z):
         """computes E(z)"""
         
-        e = (self.omega_m0 *(1+z)**3 + self.omega_r0*(1+z)**4 + self.omega_lam0 + (1+self.omega0) )**(.5)
+        e = (self.omega_m0 *(1+z)**3 + self.omega_r0*(1+z)**4 + self.omega_lam0 + (1-self.omega0)*(1+z)**2 )**(.5)
 
         return e
 
     def Hubble(self, z):
         """computes H(z)"""
 
-        e = self.E(z)
+        e_of_z = self.E(z)
 
-        return self.H0*e
+        return self.H0*e_of_z
     
     
     def comovingDist(self, z):
@@ -140,4 +140,14 @@ class cosmology:
            + self.omega_r0/x**4 + (1 - self.omega0)/x**2)), 0, a)
             
         return integral[0]*a # in Mpc
+       
+    def getAcceleration(self, z):
+        """
+        return the acceleration of the universe
+        """
+    
+        a = 1./(1+z)
         
+        H = self.Hubble(z)
+        
+        return -0.5*a*H**2 * (self.omega_m0*(1+z)**3 + 2*self.omega_r0*(1+z)**4 - 2*self.omega_lam0)
