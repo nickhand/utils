@@ -7,7 +7,7 @@ class cosmology:
     """useful functions dependent upon cosmological parameters"""
 
     
-    def __init__(self, omega_m0 = 0.274, omega_lam0 = 0.726, omega_r0 = None, h=0.72):
+    def __init__(self, omega_m0 = 0.264, omega_lam0 = 0.736, omega_r0 = None, h=0.71):
        
         self.omega_m0 = omega_m0
         self.omega_lam0 = omega_lam0
@@ -28,9 +28,11 @@ class cosmology:
     def E(self, z):
         """computes E(z)"""
         
-        e = (self.omega_m0 *(1+z)**3 + self.omega_r0*(1+z)**4 + self.omega_lam0 + (1-self.omega0)*(1+z)**2 )**(.5)
-
-        return e
+        e = (self.omega_m0 *(1+z)**3 + self.omega_r0*(1+z)**4 + self.omega_lam0 + (1-self.omega0)*(1+z)**2 )
+        if e < 0:
+            return -1.0*(-1.0*e)**(0.5)
+        else:
+            return e
 
     def Hubble(self, z):
         """computes H(z)"""
