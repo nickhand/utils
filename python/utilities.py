@@ -280,8 +280,8 @@ def bin(arrayX, arrayY, nBins, log = False, Nconst=False, norm=None, operator=nu
         min = numpy.amin(arrayX)
 
         if log:
-            bins = numpy.logspace(numpy.log10(min), numpy.log10(max), nBins)
-    
+            bins = numpy.logspace(numpy.log10(min), numpy.log10(max), nBins+1)
+            
         # initialize lists for later use 
         X = []          
         Y = []       
@@ -295,12 +295,11 @@ def bin(arrayX, arrayY, nBins, log = False, Nconst=False, norm=None, operator=nu
         arrayX = numpy.sort(arrayX)
 
     
-
         # create bins and calculate list values
         for i in range(0, nBins):
 
             if log:
-                if (i == len(bins) - 1):
+                if (i == nBins-1):
                     cond = numpy.where(arrayX >= bins[i])
                 else:
                     cond = numpy.where((arrayX >= bins[i])*(arrayX < bins[i+1]))
@@ -309,7 +308,9 @@ def bin(arrayX, arrayY, nBins, log = False, Nconst=False, norm=None, operator=nu
                 cut_high = min + (i+1)*binWidth
         
                 cond = numpy.where((arrayX >= cut_low)*(arrayX < cut_high))
-        
+            
+            assert(len(cond[0]) > 0)
+            
             x = arrayX[cond]
             y = arrayY[cond]
     
