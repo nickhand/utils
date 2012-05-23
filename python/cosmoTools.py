@@ -87,13 +87,16 @@ class cosmology:
         return 4*numpy.pi*vol[0]
         
     def angularSize(self, z, diameter):
-        """computes the angular size of an object of diameter d (in Mpc) and at redshift z"""
+        """
+        computes the angular size of an object of diameter d (in Mpc) and at redshift z
+        returns the angular size in degrees
+        """
         
         angDists = self.angDiameterDist(z)
        
         angSize = diameter/angDists
         
-        return angSize
+        return angSize*180./numpy.pi
 
     def magnitudeToLuminosity(self, Mr, kcorr):
 

@@ -7,6 +7,7 @@ from scipy.integrate import quad
 import pylab
 from physical_constants import *
 from flipper import *
+import catalog
 
 
 def B_nu(nu, T = T_CMB):
@@ -410,9 +411,10 @@ def getSigmaFromChiSquared(chi_sq, dof):
         return val[0] - p
 
     # now calculate sigma
-    sigma = bisect(func2, 0, 10)
+    sigma = bisect(func2, 0, 100)
 
-    return sigma
+    # 1 - p is probability that random variates could have this chi-squared value
+    return sigma, 1-p
 
 def paper_single():
     """
@@ -427,3 +429,15 @@ def paper_single():
     pylab.rc('ytick', labelsize='small')
     pylab.rc('legend', fontsize='medium') 
     pylab.rc('axes', linewidth=1.5)
+    
+def getIDFromRADec(ra, dec, tag):
+
+        ra_s, dec_s = catalog.convertRADecDegreesToSexagesimal(ra, dec)
+        tup = ra_s + dec_s
+
+        if (dec < 0):
+            iau_name = tag+"_J%02d%02d%05.2f-%02i%02d%05.2f" %tup
+        else:
+            iau_name = tag+"_J%02d%02d%05.2f+%02i%02d%05.2f" %tup
+
+        return iau_name
