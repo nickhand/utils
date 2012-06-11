@@ -1,9 +1,7 @@
 #
 # A module for handling catalogs of sources
 # 
-# Notes to self: should we make "row" its own class?
 #
-
 
 import numpy
 import pickle, copy
@@ -21,7 +19,6 @@ def compare_by (fieldname):
     return compare_two_dicts 
 
 def convertRADecDegreesToSexagesimal(ra, dec):
-
 
     if ra < 0:
         ra += 360.
@@ -134,11 +131,10 @@ class catalog( list ):
     def addCol( self, name, desc, order, dtype, fmt, default ):
 
         cnames = self.cols.keys()
-        ##order = len(cnames)
         if name in cnames:
             raise ValueError("Name %s already in column list" % name)
         for n in cnames:
-            if self.cols[n]['order'] == order:
+            if self.cols[n]['order'] >=  order:
                 self.cols[n]['order'] += 1
         
         self.cols[name] = {'desc': desc   , 'order': order, 'type': dtype, 'fmt' : fmt, 'default': default}

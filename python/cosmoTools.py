@@ -7,7 +7,7 @@ class cosmology:
     """useful functions dependent upon cosmological parameters"""
 
     
-    def __init__(self, omega_m0 = 0.264, omega_lam0 = 0.736, omega_r0 = None, h=0.71):
+    def __init__(self, omega_m0 = 0.266, omega_lam0 = 0.734, omega_r0 = None, h=0.71):
        
         self.omega_m0 = omega_m0
         self.omega_lam0 = omega_lam0
@@ -98,20 +98,6 @@ class cosmology:
         
         return angSize*180./numpy.pi
 
-    def magnitudeToLuminosity(self, Mr, kcorr):
-
-        h = 0.71
-        if (kcorr == 0.1):
-            Mr_sun = 4.76 
-        if (kcorr == 0.25):
-            Mr_sun = 4.5
-        if (kcorr == None):
-            Mr_sun = 4.64
-
-        lum = 10**((Mr_sun - Mr)/2.50)
-        l = lum / 1e10 * h**2
-    
-        return l
 
     def getAgeAtZ(self, z):
         """
