@@ -69,6 +69,12 @@ class catalog( list ):
         self.ncol = len(self.cols.keys())
         self.sep = ' '
 
+    def selectByID(self, id):
+        for row in self:
+            if row['id'] == id:
+                return row
+        
+        return None
 
     def nRows(self):
         i = 0

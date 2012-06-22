@@ -8,6 +8,8 @@ import pylab
 from physical_constants import *
 from flipper import *
 import catalog
+import progressbar as pb
+import collections
 
 
 def B_nu(nu, T = T_CMB):
@@ -431,13 +433,36 @@ def paper_single():
     pylab.rc('axes', linewidth=1.5)
     
 def getIDFromRADec(ra, dec, tag):
+    """
+    @brief compute the ID in IAU format from ra, dec in decimal format
+    """
+    ra_s, dec_s = catalog.convertRADecDegreesToSexagesimal(ra, dec)
+    tup = ra_s + dec_s
 
-        ra_s, dec_s = catalog.convertRADecDegreesToSexagesimal(ra, dec)
-        tup = ra_s + dec_s
+    if (dec < 0):
+        iau_name = tag+"_J%02d%02d%05.2f-%02i%02d%05.1f" %tup
+    else:
+        iau_name = tag+"_J%02d%02d%05.2f+%02i%02d%05.1f" %tup
 
-        if (dec < 0):
-            iau_name = tag+"_J%02d%02d%05.2f-%02i%02d%05.2f" %tup
-        else:
-            iau_name = tag+"_J%02d%02d%05.2f+%02i%02d%05.2f" %tup
-
-        return iau_name
+    return iau_name
+        
+def initializeProgressBar(N):
+    """
+    @brief initialize a progress bar with N total ticks
+    """
+    bar = pb.ProgressBar(maxval=N, term_width = 100, widgets=[pb.Bar('=', '[', ']'), ' ', pb.Percentage()])
+    return bar
+    
+def getDuplicatesFromList(L):
+    """
+    @brief print out the duplicate objects and indices of those objects from list L
+    """
+    dups = collections.defaultdict(list)
+    for i, e in enumerate(L):
+        dups[e].append(i)
+        
+    for k, v in sorted(dups.iteritems()):
+        if len(v) >= 2:
+            print '%s: %r' %(k, v)
+    
+    return 

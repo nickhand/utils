@@ -4,7 +4,9 @@ import physical_constants as c
         
 
 class cosmology:
-    """useful functions dependent upon cosmological parameters"""
+    """
+    useful functions dependent upon cosmological parameters
+    """
 
     
     def __init__(self, omega_m0 = 0.266, omega_lam0 = 0.734, omega_r0 = None, h=0.71):
@@ -26,7 +28,9 @@ class cosmology:
         self.kappa = self.H0**2/self.c**2 * (self.omega0 - 1.0)
 
     def E(self, z):
-        """computes E(z)"""
+        """
+        computes E(z)
+        """
         
         e = (self.omega_m0 *(1+z)**3 + self.omega_r0*(1+z)**4 + self.omega_lam0 + (1-self.omega0)*(1+z)**2 )
         if e < 0:
@@ -35,7 +39,9 @@ class cosmology:
             return e
 
     def Hubble(self, z):
-        """computes H(z)"""
+        """
+        computes H(z)
+        """
 
         e_of_z = self.E(z)
 
@@ -43,7 +49,9 @@ class cosmology:
     
     
     def comovingDist(self, z):
-        """computes comoving distances for redshift, z"""
+        """
+        computes comoving distances for redshift, z
+        """
         
     
         integral  = quad(lambda x: (self.c)/(self.H0*numpy.sqrt(self.omega_m0*(1+x)**3 + 
@@ -60,7 +68,9 @@ class cosmology:
             return abs(self.kappa)**(-0.5) * numpy.sin(abs(self.kappa)**(0.5)*integral[0])
             
     def angDiameterDist(self, z):
-        """computes angular diameter distance in Mpc for redshift, z"""        
+        """
+        computes angular diameter distance in Mpc for redshift, z
+        """        
         
         comoving = self.comovingDist(z)
                       
@@ -69,7 +79,9 @@ class cosmology:
         return angDists
         
     def luminosityDist(self, z):
-        """computes luminosity distance in Mpc for redshift, z"""        
+        """
+        computes luminosity distance in Mpc for redshift, z
+        """        
         
         comoving = self.comovingDist(z)
                       
@@ -79,7 +91,9 @@ class cosmology:
 
 
     def comovingVolume(self, z1, z2):
-        """ computes comoving volume between redshifts z1 and z2 """
+        """ 
+        computes comoving volume between redshifts z1 and z2 
+        """
 
 
         vol = quad(lambda x: (self.c/self.H0)*(1+x)**2 * self.angDiameterDist(x)**2 / self.E(x),  z1, z2)
@@ -99,6 +113,19 @@ class cosmology:
         return angSize*180./numpy.pi
 
 
+    def physicalSize(self, z, angSize):
+        """
+        computes the physical size corresponding to an angular size at redshift z
+        angSize assumed to be in degrees
+        returns size in Mpc
+        """
+        
+        angSize = angSize*numpy.pi/180.
+        angDists = self.angDiameterDist(z)
+        
+        size = angDists*angSize
+        return size
+        
     def getAgeAtZ(self, z):
         """
         return age of universe at redshift z in years
