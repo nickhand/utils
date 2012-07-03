@@ -70,9 +70,11 @@ class catalog( list ):
         self.sep = ' '
 
     def selectByID(self, id):
+        k = 0
         for row in self:
             if row['id'] == id:
-                return row
+                return k
+            k += 1
         
         return None
 
@@ -261,18 +263,18 @@ class catalog( list ):
         pylab.plot([.0001,10],[.0001,10])
         utils.saveAndShow()
 
-    def findNearestSource( self, row, rad = None ):
+    def findNearestMatch( self, ra, dec, rad = None ):
         """
         Given a row/source, find the closest row/source in this catalog
         @return distance (deg), closest row
         """
         closestRow = self[0]
-        distToClosestRow = distanceBetweenSources(closestRow, row)
+        distToClosestRow = distanceBetweenSources(closestRow, ra, dec )
         rowsWithinRadius = []
         if rad != None and distToClosestRow < rad:
             rowsWithinRadius.append([distToClosestRow, closestRow])
         for myrow in self[1:]:
-            d = distanceBetweenSources(row, myrow)
+            d = distanceBetweenSources(myrow, ra, dec)
             if d < distToClosestRow:
                 distToClosestRow = d
                 closestRow = myrow
@@ -379,12 +381,11 @@ def getDecimalRADecFromRow( row ):
     else:
         raise ValueError('No key ra or ra_s in row: %s' % str(row))
 
-def distanceBetweenSources(row1, row2):
+def distanceBetweenSources(row1, ra2, dec2):
     """
     Compute distance in degrees between to catalog entries
     """
     ra1, dec1 = getDecimalRADecFromRow( row1 )
-    ra2, dec2 = getDecimalRADecFromRow( row2 )
     cosdec = numpy.cos(numpy.pi/180. * (dec1+dec2)/2)
     dra = (ra1-ra2)*cosdec
     ddec = dec1-dec2
