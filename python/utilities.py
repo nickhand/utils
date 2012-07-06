@@ -467,7 +467,7 @@ def getDuplicatesFromList(L):
     
     return 
     
-def weighted_median(data, wt): 
+def weighted_percentile(data, wt, percentiles): 
     """
     Compute weighted percentiles. 
     If the weights are equal, this is the same as normal percentiles. 
@@ -486,7 +486,6 @@ def weighted_median(data, wt):
     @rtype: [ C{float}, ... ] 
     @return: the weighted percentiles of the data. 
     """ 
-    percentiles = [0.5]
     assert numpy.greater_equal(percentiles, 0.0).all(), "Percentiles less than zero" 
     assert numpy.less_equal(percentiles, 1.0).all(), "Percentiles greater than one" 
     data = numpy.asarray(data) 
@@ -520,5 +519,5 @@ def weighted_median(data, wt):
             assert f1>=0 and f2>=0 and f1<=1 and f2<=1 
             assert abs(f1+f2-1.0) < 1e-6 
             o.append(sd[s-1]*f1 + sd[s]*f2) 
-    return o[0] 
+    return o 
     

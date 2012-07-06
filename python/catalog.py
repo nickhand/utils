@@ -83,6 +83,26 @@ class catalog( list ):
         for row in self:
             i += 1
         return i
+
+    def partition(self, colName, N, reverse=True):
+        self.sortBy(colName)
+        if reverse:
+            self.reverse()
+        out = []
+        size = self.nRows()/N
+        for i in range(0, self.nRows(), size):
+            if len(out) == N:
+                for row in self[i:i+size]:
+                    out[-1].append(copy.copy(row))
+            else:
+                sub = catalog(cols = self.cols)
+                for row in self[i:i+size]:
+                    sub.append(copy.copy(row))
+            
+                out.append(sub)
+
+        return out
+
     def select( self, colName, func ):
         sub = catalog(cols = self.cols)
         for row in self:
