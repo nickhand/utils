@@ -73,7 +73,7 @@ class catalog( list ):
         k = 0
         for row in self:
             if row['id'] == id:
-                return k
+                return row
             k += 1
         
         return None
