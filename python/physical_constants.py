@@ -18,6 +18,7 @@ H_0 = 100.0 # in units of h km/s/Mpc
 
 a_0 = 5.292e-9
 
+# unit conversions
 cmPerAU = 1.496e13
 ergsPerCm = 1.6022e-12
 cmPerParsec = 3.086e18
@@ -29,8 +30,9 @@ cgsToJansky = 1e23
 
 Ry = 13.6 # in eV
 
+# solar parameters
 M_sun = 1.99e33
-L_sun = 3.9e33
+L_sun = 3.839e33
 T_sun = 5.78e3
 R_sun = 6.96e10
 

@@ -455,17 +455,18 @@ def initializeProgressBar(N):
     
 def getDuplicatesFromList(L):
     """
-    @brief print out the duplicate objects and indices of those objects from list L
+    @brief return the duplicate objects and indices of those objects from list L
     """
     dups = collections.defaultdict(list)
     for i, e in enumerate(L):
         dups[e].append(i)
         
+    out = {}
     for k, v in sorted(dups.iteritems()):
         if len(v) >= 2:
-            print '%s: %r' %(k, v)
+            out[k] = v
     
-    return 
+    return out
     
 def weighted_percentile(data, wt, percentiles): 
     """
