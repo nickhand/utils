@@ -115,7 +115,9 @@ class catalog( list ):
         return sub
 
     def shave(self, minIndex, maxIndex, key, reverse=True):
-
+        """
+        sort the catalog by key, return the objects between minIndex and maxIndex
+        """
         colNames = self.cols
         catNew = catalog(cols = colNames)
         cnt = 0
