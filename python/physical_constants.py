@@ -36,6 +36,8 @@ L_sun = 3.839e33
 T_sun = 5.78e3
 R_sun = 6.96e10
 
+M_earth = 5.97219e27 # in grams
+
 # AB magnitude zero point
 AB_flux_zero = 3631 # in Janskys
 
