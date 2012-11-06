@@ -12,7 +12,7 @@ import progressbar as pb
 import collections
 
 
-def B_nu(nu, T = T_CMB):
+def B_nu(nu, T = T_cmb):
     """
     @brief Planck's law
     @param nu frequency in GHz
@@ -20,23 +20,29 @@ def B_nu(nu, T = T_CMB):
     """
    
     x = h_planck*nu*1e9 / (k_b*T)
+    
+    # intensity in erg/s/cm/cm/Hz
     b_nu = (2*h_planck*((nu*1e9)**3) / c_light**2) * 1/(numpy.exp(x)- 1.)
     
-    return  b_nu * cgsToJansky / 1e6
+    # return in MJy/sr
+    return  b_nu/ (mega*jansky)
 
 
-
-def RJ(nu, T = T_CMB):
+def RJ(nu, T = T_cmb):
     """
     @brief Rayleigh Jeans limit of Planck's law for h*nu << kT
     @param nu frequency in GHz
     @return intensity in MJy/sr
     """
+    
+    # intensity in erg/s/cm/cm/Hz
     b_nu = 2. * (nu*1e9)**2 * k_b * T / c_light**2
-    return b_nu * cgsToJansky / 1e6
+    
+    # return in MJy/sr
+    return b_nu / (mega*jansky)
 
 
-def dB_dT(nu, T = T_CMB):
+def dB_dT(nu, T = T_cmb):
     """
     @brief Derivative of Planck's Law with respect to temperature
     @param nu frequency in GHz
@@ -49,7 +55,7 @@ def dB_dT(nu, T = T_CMB):
     
     return dB_dT
 
-def dT_dB(nu, T = T_CMB):
+def dT_dB(nu, T = T_cmb):
     """
     @brief inverse of the derivative of Planck's Law with respect to temperature
     @param nu frequency in GHz
@@ -108,7 +114,7 @@ def f_sz (nu):
     @return value of frequency function
     """
 
-    x = h_planck*nu*1e9 / k_b / T_CMB
+    x = h_planck*nu*1e9 / k_b / T_cmb
     f = x*(numpy.exp(x) + 1.) / (numpy.exp(x) - 1.) - 4.0
 
     return f
