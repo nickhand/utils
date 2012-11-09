@@ -362,39 +362,6 @@ def extrap1d(interpolator):
 
     return ufunclike
 
-
-def getBootstrapError(x, w,  N_resamples):
-    """
-    @brief calculates the errors through bootstrapping
-    @param x array to be resampled from
-    @param w possible weight array
-    @param N_resamples number of resamples
-    
-    @return mean of resampled distribution
-    @return 1sigma error on mean of resampled dist.
-    """
-
-    mean_list = []
-
-    N_bin = len(x)
-
-    if w is None:
-        w = numpy.ones(N_bin)
-        
-    for j in xrange(0, N_resamples):
-
-        avg = 0
-        norm = 0
-        for k in xrange(0, N_bin):
-            
-            i = random.randint(0, N_bin-1)
-            avg += x[i]*w[i]
-            norm += abs(w[i])
-           
-        
-        mean_list.append(avg/norm)
-            
-    return numpy.mean(mean_list), numpy.std(mean_list)
                                                                             
     
 def getSigmaFromChiSquared(chi_sq, dof):
