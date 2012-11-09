@@ -11,5 +11,24 @@ if 'pickle' in file:
 elif 'txt' in file:
     cat = catalog.readFromASCII(file)
 
+nRows = cat.nRows()
+
+printN = 20
+currRow = 0
+while True:
     
-print cat
+        
+    cnt = 0
+    while currRow < nRows and cnt < printN:
+    
+        cat.printRow(currRow)
+        currRow += 1 
+        
+        cnt += 1
+
+    
+    if currRow == cat.nRows():
+        break
+    else:
+        print "[%d%%]" %(int(100.*currRow/nRows))
+        raw_input()
