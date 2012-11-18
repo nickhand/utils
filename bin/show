@@ -21,7 +21,7 @@ while True:
     cnt = 0
     while currRow < nRows and cnt < printN:
     
-        cat.printRow(currRow)
+        print cat.printRow(currRow)
         currRow += 1 
         
         cnt += 1

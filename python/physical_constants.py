@@ -12,7 +12,7 @@ gram    = 1.0
 second  = 1.0
 erg     = 1.0
 kelvin  = 1.0
-radians = 1.0    
+radian = 1.0    
 
 # prefixes
 giga  = 1e9
@@ -57,16 +57,16 @@ watt            = 1e7 * erg / second
 rydberg         = 10973731.568 * meter**(-1.)
 
 # astronomical constants
-au      = 499.004782 * second * c_light  # the astronomical unit
-degrees = pi/180.
-arcmin  = degrees/60.
-arcsec  = arcmin/60.               # radians
-parsec  = au / arcsec                    # cm
-minute  = 60.                            # seconds
-hour    = 60. * 60.                      # seconds
-day     = 8.64e4                         # seconds
-year    = 365.2425 * day                 # seconds
-Mpc     = mega*parsec
+au         = 499.004782 * second * c_light  # the astronomical unit
+degree    = pi/180.
+arcminute = degree/60.
+arcsecond = arcminute/60.               # radians
+parsec     = au / arcsecond                    # cm
+minute     = 60.                            # seconds
+hour       = 60. * 60.                      # seconds
+day        = 8.64e4                         # seconds
+year       = 365.2425 * day                 # seconds
+Mpc        = mega*parsec
                                                                     
 L_sun = 3.826e33              # erg/s
 M_sun = 1.9891e33             # gm
