@@ -1,34 +1,43 @@
 #!/usr/bin/env python
-
+import argparse
 import catalog
-import sys
-import os
 
-file = sys.argv[1]
+def show(catalog_file, printN=20):
+    
+    # read in the catalog file
+    cat = catalog.catalog(catFile=catalog_file)
 
-if 'pickle' in file:
-    cat = catalog.readFromPickleFile(file)
-elif 'txt' in file:
-    cat = catalog.readFromASCII(file)
+    # the number of rows
+    nRows = cat.nRows()
 
-nRows = cat.nRows()
-
-printN = 20
-currRow = 0
-while True:
+    currRow = 0
+    while True:
     
         
-    cnt = 0
-    while currRow < nRows and cnt < printN:
+        cnt = 0
+        while currRow < nRows and cnt < printN:
     
-        print cat.printRow(currRow)
-        currRow += 1 
+            print cat[currRow]
+            currRow += 1 
         
-        cnt += 1
+            cnt += 1
 
     
-    if currRow == cat.nRows():
-        break
-    else:
-        print "[%d%%]" %(int(100.*currRow/nRows))
-        raw_input()
+        if currRow == cat.nRows():
+            break
+        else:
+            print "[%d%%]" %(int(100.*currRow/nRows))
+            raw_input()
+
+    return
+
+if __name__ == '__main__':
+    
+    # parse the input arguments
+    parser = argparse.ArgumentParser(description="print out the input catalog file")
+    parser.add_argument('catalog_file', type=str, help='the catalog_file') 
+    parser.add_argument('--N', '-printN', default=20, type=int, help='the number of lines to print at once')
+    args = parser.parse_args()
+
+    
+    show(args.catalog_file, printN=args.printN)
