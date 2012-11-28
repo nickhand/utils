@@ -36,7 +36,7 @@ if __name__ == '__main__':
     # parse the input arguments
     parser = argparse.ArgumentParser(description="print out the input catalog file")
     parser.add_argument('catalog_file', type=str, help='the catalog_file') 
-    parser.add_argument('--N', '-printN', default=20, type=int, help='the number of lines to print at once')
+    parser.add_argument('-N', '--printN', default=20, type=int, help='the number of lines to print at once')
     args = parser.parse_args()
 
     
