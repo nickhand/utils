@@ -1,87 +1,88 @@
-import numpy
-import scipy
-import random
+import numpy as np
+from physical_constants import *
+import progressbar as pb
 from scipy.special import gammaincc
 from scipy.optimize import bisect
 from scipy.integrate import quad
 import pylab
-from physical_constants import *
-from flipper import *
 import catalog
-import progressbar as pb
 import collections
 
 
-def B_nu(nu, T = T_cmb):
+def planck_law(nu, T = T_cmb):
     """
     @brief Planck's law
-    @param nu frequency in GHz
-    @return intensity in MJy/sr
+    @param nu: frequency in GHz
+    @keyword T: the temperature to use in Kelvin
+    @return specific intensity in MJy/sr
     """
-   
-    x = h_planck*nu*1e9 / (k_b*T)
+    # the dimensionaless frequency parameter
+    x = h_planck*giga*nu / (k_b*T)
     
     # intensity in erg/s/cm/cm/Hz
-    b_nu = (2*h_planck*((nu*1e9)**3) / c_light**2) * 1/(numpy.exp(x)- 1.)
+    b_nu = (2*h_planck*((giga*nu)**3) / c_light**2) * 1/(np.exp(x)- 1.)
     
     # return in MJy/sr
-    return  b_nu/ (mega*jansky)
+    return  b_nu / (mega*jansky)
 
 
-def RJ(nu, T = T_cmb):
+def rayleigh_jeans_law(nu, T = T_cmb):
     """
     @brief Rayleigh Jeans limit of Planck's law for h*nu << kT
-    @param nu frequency in GHz
+    @param nu: frequency in GHz
+    @keyword T: the temperature to use in Kelvin
     @return intensity in MJy/sr
     """
     
     # intensity in erg/s/cm/cm/Hz
-    b_nu = 2. * (nu*1e9)**2 * k_b * T / c_light**2
+    b_nu = 2. * (giga*nu)**2 * k_b * T / c_light**2
     
     # return in MJy/sr
     return b_nu / (mega*jansky)
 
 
-def dB_dT(nu, T = T_cmb):
+def dBdT(nu, T = T_cmb):
     """
-    @brief Derivative of Planck's Law with respect to temperature
-    @param nu frequency in GHz
+    @brief derivative of Planck's law with respect to temperature
+    @param nu: frequency in GHz
+    @keyword T: the temperature to use in Kelvin
     @return value of derivative in cgs units
     """
-    A = 2 * h_planck**2 * (nu*1e9)**4 / k_b  / (c_light*T)**2
+    # the constant out front
+    A = 2 * h_planck**2 * (giga*nu)**4 / k_b  / (c_light*T)**2
     
-    x = h_planck*nu*1e9 / k_b / T
-    dB_dT = A * numpy.exp(x) / (numpy.exp(x) - 1.)**2
+    # dimensionaless freq param
+    x = h_planck*giga*nu / k_b / T
     
-    return dB_dT
+    # return the derivative
+    return  A * np.exp(x) / (np.exp(x) - 1.)**2
+    
 
-def dT_dB(nu, T = T_cmb):
+def dTdB(nu, T = T_cmb):
     """
-    @brief inverse of the derivative of Planck's Law with respect to temperature
-    @param nu frequency in GHz
+    @brief inverse of the derivative of Planck's law with respect to temperature
+    @param nu: frequency in GHz
+    @keyword T: the temperature to use in Kelvin
     @return value of derivative in cgs units
     """
 
-    return dB_dT(nu, T)**(-1.0)
+    return dB_dT(nu, T)**(-1.)
 
-
-def dB_dTrj(nu):
+def dBdT_RJ(nu):
     """
-    @brief Derivative of the RJ approximation with respect to temperature
-    @param nu frequency in GHz
+    @brief derivative of the Rayleigh Jeans approximation with respect to temperature
+    @param nu: frequency in GHz
+    @keyword T: the temperature to use in Kelvin
     @return value of derivative in cgs units
     """
 
-    dB_dTrj = 2. * k_b * (nu*1e9)**2 / c_light**2
-
-    return dB_dTrj
-
+    return 2. * k_b * (giga*nu)**2 / c_light**2
 
 
 def centroid(mp):
     """
-    @brief calculates the centroid of map
-    @param mp liteMap object
+    @brief compute the centroid of an input map, weighted by the data
+    @param mp: the map object (flipper.flipper.liteMap)
     @return value of centroid in degrees
     """
     
@@ -89,133 +90,49 @@ def centroid(mp):
     Nx = mp.Nx
     Ny = mp.Ny
 
+    # compute the x pixels, weighted by data
     xsum = 0.0
-    for i in numpy.range(0, Ny):
-        for j in numpy.range(0, Nx):
-            xsum += data[i, j] * (j+1)
+    for i in xrange(0, Nx):
+        for j in xrange(0, Ny):
+            xsum += data[j, i] * (i+1)
 
+    # compute the y pixels, weighted by data
     ysum = 0.0
     for i in range(0, Nx):
         for j in range(0, Ny):
             ysum += data[j, i] * (j+1)
-        
-    totalsum = numpy.sum(data[:,:])
+      
+    # the total weight normalization  
+    totalsum = np.sum(data[:,:])
+    
+    # get the x, y weighted pixels
     xcm = xsum / totalsum
     ycm = ysum / totalsum
+    
+    # convert pixels to degrees
     cmdeg = mp.pixToSky(xcm, ycm)
 
     return cmdeg
 
 
-def f_sz (nu):
+def f_sz(nu):
     """
-    @brief calculates frequency dependence of thermal SZ effect
-    @param nu freq in GHz
+    @brief the frequency dependence of the thermal SZ effect
+    @param nu: frequency in GHz
     @return value of frequency function
     """
 
-    x = h_planck*nu*1e9 / k_b / T_cmb
-    f = x*(numpy.exp(x) + 1.) / (numpy.exp(x) - 1.) - 4.0
+    x = h_planck*giga*nu / k_b / T_cmb
+    f = x*(np.exp(x) + 1.) / (np.exp(x) - 1.) - 4.0
 
     return f
 
-def h_sz (nu):
 
-    x = h_planck*nu*1e9 / k_b / T_cmb
-    g =  f_sz(nu) * x * numpy.exp(x) / (numpy.exp(x) - 1.)
-
-    return g
-
-    
-def convolveWithBeam(mp, beamFile, template = None, pixelPitch = None):
-    """
-    @brief convolve litemap object with ACT beam
-    @param mp inumpyut litemap object
-    @param beamFile filename of the beam data
-    @param template template litemap object
-    @param pixelPitch pixelPitch of mp
-    @return convolved map object
-    """
-
-    
-    f = file(beamFile)
-    ell=[]
-    wl = []
-    for line in f:
-        fields = line[:-1].split()
-        ell.append(float(fields[0]))
-        wl.append(float(fields[1]))
-
-    ell = numpy.array(ell)
-    wl  = numpy.array(wl)
-
-    if (template == None):
-        t = mp.copy()
-    else:
-        t = template.copy()
-    t.data[:] = 0.0
-    ft = fftTools.fftFromLiteMap(t)
-
-    l_f = numpy.floor(ft.modLMap)
-    l_c = numpy.ceil(ft.modLMap)
-
-    for i in xrange(numpy.shape(ft.kMap)[0]):
-        for j in xrange(numpy.shape(ft.kMap)[1]):
-            w_lo = wl[l_f[i,j]]
-            w_hi = wl[l_c[i,j]]
-            trueL = ft.modLMap[i,j]
-            w = (w_hi-w_lo)*(trueL - l_f[i,j]) + w_lo
-            ft.kMap[i,j] = w
-
-    t.data = numpy.sqrt(abs(ft.kMap))
-
-    mp_ft = fftTools.fftFromLiteMap(mp)
-
-    if (pixelPitch != None):
-        t = liteMap.upgradePixelPitch(t, pixelPitch)
-
-    mp_ft.kMap *= t.data
-    data_conv = numpy.real(numpy.fft.ifft2(mp_ft.kMap))
-    t.data[:] = data_conv[:]
-
-    return t
-
-def mask(lm, ra, dec, hw = 7):
-    """
-    @brief read in a litemap and implement a mask at the given ra/dec
-    @param lm the litemap to mask
-    @param ra the right ascension of the mask location
-    @param dec the declination of the mask location
-    @param hw the halfwidth of the mask in pixels
-    
-    @return masked the masked litemap
-    """
-
-
-    x = range(0, lm.Nx)
-    y = range(0, lm.Ny)
-
-    xx, yy = numpy.meshgrid(x, y)
-
-    x0, y0 = lm.skyToPix(ra, dec)
-    dist = numpy.sqrt((xx - x0)**2 + (yy - y0)**2)
-
-    a,b = numpy.where((dist > 15) * (dist < 25))
-    avg = numpy.mean(lm.data[a,b])
-
-    i, j = numpy.where(dist < hw)
-    lm.data[i,j] = avg
-
-    masked = liteMap.liteMapFromDataAndWCS(lm.data, lm.wcs)
-
-    return masked
-
-
-def bin(arrayX, arrayY, nBins, log = False, Nconst=False, norm=None, operator=numpy.mean):
+def bin(arrayX, arrayY, nBins, log = False, Nconst=False, norm=None, operator=np.mean):
     """
     @brief bin the inumpyut arrays using the given operator
-    @param arrayX x inumpyut array
-    @param arrayY y inumpyut array to be binned
+    @param arrayX x input array
+    @param arrayY y input array to be binned
     @param nBins number of bins to use
     @param log boolean denoting whether to use even bins in logspace
     @param Nconst boolean denoting whether to have fixed number of points per bin
@@ -229,8 +146,8 @@ def bin(arrayX, arrayY, nBins, log = False, Nconst=False, norm=None, operator=nu
     """
     
     # convert to arrays
-    arrayX = numpy.array(arrayX)
-    arrayY = numpy.array(arrayY)
+    arrayX = np.array(arrayX)
+    arrayY = np.array(arrayY)
 
     if Nconst == True:
         
@@ -246,9 +163,9 @@ def bin(arrayX, arrayY, nBins, log = False, Nconst=False, norm=None, operator=nu
         
 
         # sort arrays
-        index = numpy.argsort(arrayX)
+        index = np.argsort(arrayX)
         arrayY = arrayY[index]
-        arrayX = numpy.sort(arrayX)
+        arrayX = np.sort(arrayX)
         
     
 
@@ -261,35 +178,35 @@ def bin(arrayX, arrayY, nBins, log = False, Nconst=False, norm=None, operator=nu
             if norm is not None:
                 w = norm[i*Nwidth:(i+1)*Nwidth]
             
-            X.append(numpy.mean(x))
+            X.append(np.mean(x))
             if norm is None:
                 Y.append(operator(y))
             else:
-                Y.append(numpy.sum(y)/numpy.sum(w))
+                Y.append(np.sum(y)/np.sum(w))
                 
             weights.append(len(x))
             
-            Ystd.append(numpy.std(y))
+            Ystd.append(np.std(y))
 
     
         # converts lists to arrays
-        X = numpy.array(X)
-        Y = numpy.array(Y)
-        Ystd = numpy.array(Ystd)
-        weights = numpy.array(weights)
+        X = np.array(X)
+        Y = np.array(Y)
+        Ystd = np.array(Ystd)
+        weights = np.array(weights)
 
         
         return X, Y, Ystd, weights
 
     else:
         # define min and max distance and number of bins
-        binWidth = (numpy.amax(arrayX) - numpy.amin(arrayX))/nBins
+        binWidth = (np.amax(arrayX) - np.amin(arrayX))/nBins
 
-        max = numpy.amax(arrayX)
-        min = numpy.amin(arrayX)
+        max = np.amax(arrayX)
+        min = np.amin(arrayX)
 
         if log:
-            bins = numpy.logspace(numpy.log10(min), numpy.log10(max), nBins+1)
+            bins = np.logspace(np.log10(min), np.log10(max), nBins+1)
             
         # initialize lists for later use 
         X = []          
@@ -299,9 +216,9 @@ def bin(arrayX, arrayY, nBins, log = False, Nconst=False, norm=None, operator=nu
         
 
         # sort arrays
-        index = numpy.argsort(arrayX)
+        index = np.argsort(arrayX)
         arrayY = arrayY[index]
-        arrayX = numpy.sort(arrayX)
+        arrayX = np.sort(arrayX)
 
     
         # create bins and calculate list values
@@ -309,14 +226,14 @@ def bin(arrayX, arrayY, nBins, log = False, Nconst=False, norm=None, operator=nu
 
             if log:
                 if (i == nBins-1):
-                    cond = numpy.where(arrayX >= bins[i])
+                    cond = np.where(arrayX >= bins[i])
                 else:
-                    cond = numpy.where((arrayX >= bins[i])*(arrayX < bins[i+1]))
+                    cond = np.where((arrayX >= bins[i])*(arrayX < bins[i+1]))
             else:
                 cut_low = min + i*binWidth
                 cut_high = min + (i+1)*binWidth
         
-                cond = numpy.where((arrayX >= cut_low)*(arrayX < cut_high))
+                cond = np.where((arrayX >= cut_low)*(arrayX < cut_high))
             
             assert(len(cond[0]) > 0)
             
@@ -324,17 +241,17 @@ def bin(arrayX, arrayY, nBins, log = False, Nconst=False, norm=None, operator=nu
             y = arrayY[cond]
     
         
-            X.append(numpy.mean(x))
+            X.append(np.mean(x))
             Y.append(operator(y))
             weights.append(len(x))
-            Ystd.append(numpy.std(y))
+            Ystd.append(np.std(y))
 
     
         # converts lists to arrays
-        X = numpy.array(X)
-        Y = numpy.array(Y)
-        Ystd = numpy.array(Ystd)
-        weights = numpy.array(weights)
+        X = np.array(X)
+        Y = np.array(Y)
+        Ystd = np.array(Ystd)
+        weights = np.array(weights)
 
         
         return X, Y, Ystd, weights
@@ -358,7 +275,7 @@ def extrap1d(interpolator):
             return interpolator(x)
 
     def ufunclike(xs):
-        return numpy.array(map(pointwise, numpy.array(xs)))
+        return np.array(map(pointwise, np.array(xs)))
 
     return ufunclike
 
@@ -381,7 +298,7 @@ def getSigmaFromChiSquared(chi_sq, dof):
 
     def func2(x):
 
-        val = quad(lambda y: 1.0/numpy.sqrt(2.0*numpy.pi)*numpy.exp(-y**2/2.0), -x, x)
+        val = quad(lambda y: 1.0/np.sqrt(2.0*np.pi)*np.exp(-y**2/2.0), -x, x)
 
         return val[0] - p
 
@@ -449,9 +366,9 @@ def weighted_percentile(data, wt, percentiles):
     each other and must have equal length (unless C{wt} is C{None}). 
     
     @param data: The data. 
-    @type data: A L{numpy.ndarray} array or a C{list} of numbers. 
+    @type data: A L{np.ndarray} array or a C{list} of numbers. 
     @param wt: How important is a given piece of data. 
-    @type wt: C{None} or a L{numpy.ndarray} array or a C{list} of numbers. 
+    @type wt: C{None} or a L{np.ndarray} array or a C{list} of numbers. 
             All the weights must be non-negative and the sum must be 
             greater than zero. 
     @param percentiles: what percentiles to use.  (Not really percentiles, 
@@ -460,27 +377,27 @@ def weighted_percentile(data, wt, percentiles):
     @rtype: [ C{float}, ... ] 
     @return: the weighted percentiles of the data. 
     """ 
-    assert numpy.greater_equal(percentiles, 0.0).all(), "Percentiles less than zero" 
-    assert numpy.less_equal(percentiles, 1.0).all(), "Percentiles greater than one" 
-    data = numpy.asarray(data) 
+    assert np.greater_equal(percentiles, 0.0).all(), "Percentiles less than zero" 
+    assert np.less_equal(percentiles, 1.0).all(), "Percentiles greater than one" 
+    data = np.asarray(data) 
     assert len(data.shape) == 1 
     if wt is None: 
-        wt = numpy.ones(data.shape, numpy.float) 
+        wt = np.ones(data.shape, np.float) 
     else: 
-        wt = numpy.asarray(wt, numpy.float) 
+        wt = np.asarray(wt, np.float) 
         assert wt.shape == data.shape 
-        assert numpy.greater_equal(wt, 0.0).all(), "Not all weights are non-negative." 
+        assert np.greater_equal(wt, 0.0).all(), "Not all weights are non-negative." 
     assert len(wt.shape) == 1 
     n = data.shape[0] 
     assert n > 0 
-    i = numpy.argsort(data) 
-    sd = numpy.take(data, i, axis=0) 
-    sw = numpy.take(wt, i, axis=0) 
-    aw = numpy.add.accumulate(sw) 
+    i = np.argsort(data) 
+    sd = np.take(data, i, axis=0) 
+    sw = np.take(wt, i, axis=0) 
+    aw = np.add.accumulate(sw) 
     if not aw[-1] > 0: 
         raise ValueError, "Nonpositive weight sum" 
     w = (aw-0.5*sw)/aw[-1] 
-    spots = numpy.searchsorted(w, percentiles) 
+    spots = np.searchsorted(w, percentiles) 
     o = [] 
     for (s, p) in zip(spots, percentiles): 
         if s == 0: 
