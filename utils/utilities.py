@@ -1,11 +1,11 @@
 import numpy as np
-from physical_constants import *
-import progressbar as pb
+from utils.physical_constants import *
+from utils import progressbar
 from scipy.special import gammaincc
 from scipy.optimize import bisect
 from scipy.integrate import quad
 import pylab
-import catalog
+from catalogIO import catalog
 import collections
 
 

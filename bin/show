@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import argparse
-import catalog
+from catalogIO import catalog
 
 def show(catalog_file, printN=20):
     
