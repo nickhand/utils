@@ -90,14 +90,14 @@ Efron, An Introduction to the Bootstrap. Chapman & Hall 1993
     elif method == 'bca':
 
         # The value of the statistic function applied just to the actual data.
-        ostat = statfunction(data)
+        ostat = statfunction(data, weights)
 
         # The bias correction value.
         z0 = norm.ppf( ( 1.0*np.sum(stat < ostat, axis=0)  ) / n_samples )
 
         # Statistics of the jackknife distribution
         jackindexes = jackknife_indexes(data)
-        jstat = [statfunction(data[index]) for index in jackindexes]
+        jstat = [statfunction(data[index], weights[index]) for index in jackindexes]
         jmean = np.mean(jstat,axis=0)
 
         # Acceleration value
