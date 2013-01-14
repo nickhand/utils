@@ -239,10 +239,15 @@ def bin(arrayX, arrayY, nBins, log = False, Nconst=False, norm=None, operator=np
             
             x = arrayX[cond]
             y = arrayY[cond]
-    
-        
+            if norm is not None:
+                w = norm[cond]
+            
             X.append(np.mean(x))
-            Y.append(operator(y))
+            if norm is None:
+                Y.append(operator(y))
+            else:
+                Y.append(np.sum(y)/np.sum(w))
+    
             weights.append(len(x))
             Ystd.append(np.std(y))
 
@@ -307,6 +312,25 @@ def getSigmaFromChiSquared(chi_sq, dof):
 
     # 1 - p is probability that random variates could have this chi-squared value
     return sigma, 1-p
+    
+def getSigmaFromPValue(p_value):
+    """
+    @brief compute the significance (in sigma) of a given p-value
+    @param p_value: 1 - p_value is prob that random variates could have a given chi squared
+
+    @return the significance in sigma
+    """
+
+    def func(x):
+
+        val = quad(lambda y: 1.0/np.sqrt(2.0*np.pi)*np.exp(-y**2/2.0), -x, x)
+
+        return val[0] - p_value
+
+    # now calculate sigma
+    sigma = bisect(func, 0, 100)
+
+    return sigma
 
 def paper_single():
     """
