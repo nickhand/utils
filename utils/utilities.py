@@ -7,7 +7,7 @@ from scipy.integrate import quad
 import pylab
 from catIO import catalog
 import collections
-
+import sys
 
 def planck_law(nu, T = T_cmb):
     """
@@ -435,4 +435,20 @@ def weighted_percentile(data, wt, percentiles):
             assert abs(f1+f2-1.0) < 1e-6 
             o.append(sd[s-1]*f1 + sd[s]*f2) 
     return o 
+    
+def stringToFunction(astr):
+    """
+    @brief given a string containing the name of a function, convert 
+    it to a function
+
+    @param astr: string of function name
+    """
+    module, _, function = astr.rpartition('.')
+    if module:
+        __import__(module)
+        mod = sys.modules[module]
+    else:
+        mod = sys.modules['__main__']
+
+    return getattr(mod, function)
     
