@@ -452,3 +452,39 @@ def stringToFunction(astr):
 
     return getattr(mod, function)
     
+def runge_kutta_4th(x, y, z, a , dx):
+    """
+    @brief a fourth order Runge-Kutta ODE solver
+    @param x: the independent variable (float)
+    @param y: the initial dependent variable at x (float)
+    @param z: the first derivative dy/dx (float)
+    @param a: the acceleration function of y, d2y/dx2, a(x, y, z) (function)
+    @param dx: the interval step in x (float)
+    """
+
+    x1 = x
+    y1 = y
+    z1 = z
+    a1 = a(x1, y1, z1) #this is dz/dx
+
+    x2 = x + 0.5*dx
+    y2 = y + 0.5*z1*dx
+    z2 = z + 0.5*a1*dx
+    a2 = a(x2, y2, z2)
+
+    x3 = x + 0.5*dx
+    y3 = y + 0.5*z2*dx
+    z3 = z + 0.5*a2*dx
+    a3 = a(x3, y3, z3)
+
+    x4 = x + dx
+    y4 = y + z3*dx
+    z4 = z + a3*dx
+    a4 = a(x3, y4, z4)
+
+    yf = y + (dx/6.0)*(z1 + 2.0*z2 + 2.0*z3 + z4)
+    zf = z + (dx/6.0)*(a1 + 2.0*a2 + 2.0*a3 + a4)
+    xf = z + dx
+
+    return yf, zf
+    
