@@ -488,5 +488,15 @@ def runge_kutta_4th(x, y, z, a , dx):
 
     return yf, zf
     
+def weighted_mean_arrays(vals, errs):
+    """
+    @brief read in a list of lists and errors and compute the mean
+    """
+    vals = np.asarray(vals)
+    errs = np.asarray(errs)
     
+    mean_vals = np.sum(vals/errs**2, axis=0) / np.sum(1/errs**2, axis=0)
+    mean_errs = np.sum(1./errs**2, axis=0)**(-0.5)
+    
+    return mean_vals, mean_errs
     
