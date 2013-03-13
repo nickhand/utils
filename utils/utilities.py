@@ -1,5 +1,4 @@
 import numpy as np
-from physical_constants import *
 import progressbar as pb
 from scipy.special import gammaincc
 from scipy.optimize import bisect
@@ -9,124 +8,19 @@ from catIO import catalog
 import collections
 import sys
 
-def planck_law(nu, T = T_cmb):
+
+def update_dict(d, value, keysToUpdate):
     """
-    @brief Planck's law
-    @param nu: frequency in GHz
-    @keyword T: the temperature to use in Kelvin
-    @return specific intensity in MJy/sr
-    """
-    # the dimensionaless frequency parameter
-    x = h_planck*giga*nu / (k_b*T)
+    @brief update keys in a dictionary by strip replacing a value in the input dictionary
+    """ 
     
-    # intensity in erg/s/cm/cm/Hz
-    b_nu = (2*h_planck*((giga*nu)**3) / c_light**2) * 1/(np.exp(x)- 1.)
+    newDict = d.copy() # don't overwrite the input copy
     
-    # return in MJy/sr
-    return  b_nu / (mega*jansky)
-
-
-def rayleigh_jeans_law(nu, T = T_cmb):
-    """
-    @brief Rayleigh Jeans limit of Planck's law for h*nu << kT
-    @param nu: frequency in GHz
-    @keyword T: the temperature to use in Kelvin
-    @return intensity in MJy/sr
-    """
-    
-    # intensity in erg/s/cm/cm/Hz
-    b_nu = 2. * (giga*nu)**2 * k_b * T / c_light**2
-    
-    # return in MJy/sr
-    return b_nu / (mega*jansky)
-
-
-def dBdT(nu, T = T_cmb):
-    """
-    @brief derivative of Planck's law with respect to temperature
-    @param nu: frequency in GHz
-    @keyword T: the temperature to use in Kelvin
-    @return value of derivative in cgs units
-    """
-    # the constant out front
-    A = 2 * h_planck**2 * (giga*nu)**4 / k_b  / (c_light*T)**2
-    
-    # dimensionaless freq param
-    x = h_planck*giga*nu / k_b / T
-    
-    # return the derivative
-    return  A * np.exp(x) / (np.exp(x) - 1.)**2
-    
-
-def dTdB(nu, T = T_cmb):
-    """
-    @brief inverse of the derivative of Planck's law with respect to temperature
-    @param nu: frequency in GHz
-    @keyword T: the temperature to use in Kelvin
-    @return value of derivative in cgs units
-    """
-
-    return dB_dT(nu, T)**(-1.)
-
-def dBdT_RJ(nu):
-    """
-    @brief derivative of the Rayleigh Jeans approximation with respect to temperature
-    @param nu: frequency in GHz
-    @keyword T: the temperature to use in Kelvin
-    @return value of derivative in cgs units
-    """
-
-    return 2. * k_b * (giga*nu)**2 / c_light**2
-
-
-def centroid(mp):
-    """
-    @brief compute the centroid of an input map, weighted by the data
-    @param mp: the map object (flipper.flipper.liteMap)
-    @return value of centroid in degrees
-    """
-    
-    data = mp.data
-    Nx = mp.Nx
-    Ny = mp.Ny
-
-    # compute the x pixels, weighted by data
-    xsum = 0.0
-    for i in xrange(0, Nx):
-        for j in xrange(0, Ny):
-            xsum += data[j, i] * (i+1)
-
-    # compute the y pixels, weighted by data
-    ysum = 0.0
-    for i in range(0, Nx):
-        for j in range(0, Ny):
-            ysum += data[j, i] * (j+1)
-      
-    # the total weight normalization  
-    totalsum = np.sum(data[:,:])
-    
-    # get the x, y weighted pixels
-    xcm = xsum / totalsum
-    ycm = ysum / totalsum
-    
-    # convert pixels to degrees
-    cmdeg = mp.pixToSky(xcm, ycm)
-
-    return cmdeg
-
-
-def f_sz(nu):
-    """
-    @brief the frequency dependence of the thermal SZ effect
-    @param nu: frequency in GHz
-    @return value of frequency function
-    """
-
-    x = h_planck*giga*nu / k_b / T_cmb
-    f = x*(np.exp(x) + 1.) / (np.exp(x) - 1.) - 4.0
-
-    return f
-
+    # update each key-value pair
+    for key, val in keysToUpdate.iteritems():
+        newDict[key] = val %i    
+        
+    return newDict
 
 def bin(arrayX, arrayY, nBins, log = False, Nconst=False, norm=None, operator=np.mean):
     """
@@ -346,6 +240,8 @@ def paper_single():
     pylab.rc('legend', fontsize='medium') 
     pylab.rc('axes', linewidth=1.5)
     
+    return
+    
 def getIDFromRADec(ra, dec, tag):
     """
     @brief compute the ID in IAU format from ra, dec in decimal format
@@ -381,60 +277,6 @@ def getDuplicatesFromList(L):
             out[k] = v
     
     return out
-    
-def weighted_percentile(data, wt, percentiles): 
-    """
-    Compute weighted percentiles. 
-    If the weights are equal, this is the same as normal percentiles. 
-    Elements of the C{data} and C{wt} arrays correspond to 
-    each other and must have equal length (unless C{wt} is C{None}). 
-    
-    @param data: The data. 
-    @type data: A L{np.ndarray} array or a C{list} of numbers. 
-    @param wt: How important is a given piece of data. 
-    @type wt: C{None} or a L{np.ndarray} array or a C{list} of numbers. 
-            All the weights must be non-negative and the sum must be 
-            greater than zero. 
-    @param percentiles: what percentiles to use.  (Not really percentiles, 
-                        as the range is 0-1 rather than 0-100.) 
-    @type percentiles: a C{list} of numbers between 0 and 1. 
-    @rtype: [ C{float}, ... ] 
-    @return: the weighted percentiles of the data. 
-    """ 
-    assert np.greater_equal(percentiles, 0.0).all(), "Percentiles less than zero" 
-    assert np.less_equal(percentiles, 1.0).all(), "Percentiles greater than one" 
-    data = np.asarray(data) 
-    assert len(data.shape) == 1 
-    if wt is None: 
-        wt = np.ones(data.shape, np.float) 
-    else: 
-        wt = np.asarray(wt, np.float) 
-        assert wt.shape == data.shape 
-        assert np.greater_equal(wt, 0.0).all(), "Not all weights are non-negative." 
-    assert len(wt.shape) == 1 
-    n = data.shape[0] 
-    assert n > 0 
-    i = np.argsort(data) 
-    sd = np.take(data, i, axis=0) 
-    sw = np.take(wt, i, axis=0) 
-    aw = np.add.accumulate(sw) 
-    if not aw[-1] > 0: 
-        raise ValueError, "Nonpositive weight sum" 
-    w = (aw-0.5*sw)/aw[-1] 
-    spots = np.searchsorted(w, percentiles) 
-    o = [] 
-    for (s, p) in zip(spots, percentiles): 
-        if s == 0: 
-            o.append(sd[0]) 
-        elif s == n: 
-            o.append(sd[n-1]) 
-        else: 
-            f1 = (w[s] - p)/(w[s] - w[s-1]) 
-            f2 = (p - w[s-1])/(w[s] - w[s-1]) 
-            assert f1>=0 and f2>=0 and f1<=1 and f2<=1 
-            assert abs(f1+f2-1.0) < 1e-6 
-            o.append(sd[s-1]*f1 + sd[s]*f2) 
-    return o 
     
 def stringToFunction(astr):
     """
