@@ -125,16 +125,22 @@ class mp_master(object):
         @brief start the workers and do the work
         """
         
-        # start the work
-        for w in self.workers:
-            w.start()
+        try: 
+            # start the work
+            for w in self.workers:
+                w.start()
             
-        # add a poison pill for each worker
-        for i in range(len(self.workers)):
-            self.tasks.put(None)
+            # add a poison pill for each worker
+            for i in range(len(self.workers)):
+                self.tasks.put(None)
             
-        # wait for all tasks to finish
-        self.tasks.join()
+            # wait for all tasks to finish
+            self.tasks.join()
+        except KeyboardInterrupt:
+            print "caught keyboard interrupt.."
+            for w in self.workers:
+                w.terminate()
+            
         
         return
         
