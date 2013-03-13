@@ -138,8 +138,8 @@ class mp_master(object):
             self.tasks.join()
         except KeyboardInterrupt:
             print "caught keyboard interrupt.."
-            for w in self.workers:
-                w.terminate()
+            # for w in self.workers:
+            #                w.terminate()
             
         
         return
