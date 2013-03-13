@@ -69,11 +69,11 @@ class task(object):
     is performed
     """
     
-    def __init__(self, function, *args, num=0):
+    def __init__(self, function, *args, **kwargs):
         
         self.func = function
         self.args = args
-        self.num = num
+        self.num = kwargs.get('num', 0)
         
         
     def __call__(self):
