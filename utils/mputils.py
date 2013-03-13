@@ -1,4 +1,5 @@
 import multiprocessing as mp
+import logging, os, sys
 progressLoaded = True
 try:
     from utils.utilities import initializeProgressBar
@@ -98,6 +99,10 @@ class mp_master(object):
         # set up the queues
         self.results = mp.Queue()
         self.tasks = mp.JoinableQueue()
+        
+        # set up the logger
+        self.logger = mp.log_to_stderr()
+        self.logger.setLevel(logging.INFO)
         
         # if we want a progress bar
         if progress and progressLoaded:
