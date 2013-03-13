@@ -4,10 +4,13 @@ from utils import utilities, mputils
 from flipper import flipperDict
 
 
-def taskFunc(params, valToUpdate, paramsToUpdate, classFunc, runFunc):
+def taskFunc(params, valToUpdate, paramsToUpdate, className, runName):
     """
     @brief update the params
     """
+    
+    classFunc = utilities.stringToFunction(className)
+    runFunc = getattr(classFunc, runName)
     
     # update the parameter dictionary
     newParams = utilities.update_dict(params, valToUpdate, paramsToUpdate)
@@ -23,9 +26,6 @@ def taskFunc(params, valToUpdate, paramsToUpdate, classFunc, runFunc):
 
 def batchrun(p, args):
     
-    # turn the class name and method string into a function
-    classFunc = utilities.stringToFunction(p['className'])
-    runFunc = getattr(classFunc, p['runFunc'])
     
     # read in the parameters we'll need to update
     params = flipperDict.flipperDict()
@@ -36,7 +36,7 @@ def batchrun(p, args):
     
     # enqueue the tasks
     for cnt, i  in enumerate(p['valsToUpdate']):
-        master.enqueue(mputils.task(taskFunc, params, i, p['paramsToUpdate'], classFunc, runFunc, num=cnt ))
+        master.enqueue(mputils.task(taskFunc, params, i, p['paramsToUpdate'], p['className'], p['runFunc'], num=cnt ))
         
     # start the work and wait until it finishes
     master.run()
