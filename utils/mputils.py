@@ -141,12 +141,13 @@ class mp_master(object):
             
             # wait for all tasks to finish
             self.tasks.join()
+            
         except KeyboardInterrupt:
             print "caught keyboard interrupt.."
             print mp.active_children()
             for w in self.workers:
                 w.terminate()
-                w.join()
+                #w.join()
             
         
         return
