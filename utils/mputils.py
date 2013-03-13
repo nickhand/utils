@@ -100,7 +100,7 @@ class mp_master(object):
         self.tasks = mp.JoinableQueue()
         
         # if we want a progress bar
-        if progresss and progressLoaded:
+        if progress and progressLoaded:
             bar = initializeProgressBar(njobs)
         else:
             bar = None
