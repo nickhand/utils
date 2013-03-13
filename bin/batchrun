@@ -36,7 +36,7 @@ def batchrun(p, args):
     
     # enqueue the tasks
     for cnt, i  in enumerate(p['valsToUpdate']):
-        master.enqueue(mp.task(taskFunc, params, i, p['paramsToUpdate'], classFunc, runFunc, num=cnt ))
+        master.enqueue(mputils.task(taskFunc, params, i, p['paramsToUpdate'], classFunc, runFunc, num=cnt ))
         
     # start the work and wait until it finishes
     master.run()
