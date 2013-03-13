@@ -32,7 +32,7 @@ def batchrun(p, args):
     params.readFromFile(p['paramFile'])
     
     # initialize the multiprocessing master with nprocs
-    master = mputils.mp_master(args.np)
+    master = mputils.mp_master(args.np, len(p['valsToUpdate']))
     
     # enqueue the tasks
     for cnt, i  in enumerate(p['valsToUpdate']):
