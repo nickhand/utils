@@ -1,5 +1,5 @@
 import multiprocessing as mp
-progessLoaded = True
+progressLoaded = True
 try:
     from utils.utilities import initializeProgressBar
 except:
