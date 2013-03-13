@@ -79,7 +79,7 @@ class task(object):
     def __call__(self):
         
         # call the function with the arguments
-        ans = self.func(args)
+        ans = self.func(self.args)
             
         return ans
 
