@@ -25,7 +25,7 @@ def batchrun(p, args):
     
     # turn the class name and method string into a function
     classFunc = utilities.stringToFunction(p['className'])
-    runFunc = getattr(p['runFunc'])
+    runFunc = getattr(classFunc, p['runFunc'])
     
     # read in the parameters we'll need to update
     params = flipperDict.flipperDict()
