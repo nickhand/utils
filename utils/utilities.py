@@ -17,8 +17,8 @@ def update_dict(d, value, keysToUpdate):
     newDict = d.copy() # don't overwrite the input copy
     
     # update each key-value pair
-    for key, val in keysToUpdate.iteritems():
-        newDict[key] = val %i    
+    for k, v in keysToUpdate.iteritems():
+        newDict[k] = v %value    
         
     return newDict
 
