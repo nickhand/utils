@@ -100,7 +100,7 @@ class mp_master(object):
         self.results = mp.Queue()
         self.tasks = mp.JoinableQueue()
         
-        # set up the logger
+        # set up the logger to log to sys.stderr
         self.logger = mp.log_to_stderr()
         self.logger.setLevel(logging.INFO)
         
@@ -143,6 +143,7 @@ class mp_master(object):
             self.tasks.join()
         except KeyboardInterrupt:
             print "caught keyboard interrupt.."
+            print mp.active_children()
             for w in self.workers:
                 w.terminate()
                 w.join()
