@@ -142,10 +142,11 @@ class mp_master(object):
                 self.tasks.put(None)
             
             # wait for all tasks to finish
+            print "BEFORE JOIN"
             self.tasks.join()
-            
+            print "AFTER JOIN"
         except:
-            
+            print "IN EXCEPT"
             # close all the workers gracefully
             for w in self.workers:
                w.terminate()
