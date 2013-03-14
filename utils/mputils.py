@@ -114,6 +114,7 @@ class mp_master(object):
         print 'creating %d workers' % nprocs
         self.workers = [ worker(self.tasks, self.results, pbar=bar) for i in range(nprocs) ]
         
+        
         return
     
     def enqueue(self, task):
@@ -130,6 +131,7 @@ class mp_master(object):
         @brief start the workers and do the work
         """
         
+        # make sure to catch exceptions
         try: 
             # start the work
             for w in self.workers:
@@ -144,6 +146,7 @@ class mp_master(object):
             
         except:
             
+            # close all the workers gracefully
             for w in self.workers:
                w.terminate()
                w.join()
