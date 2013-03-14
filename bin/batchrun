@@ -23,16 +23,6 @@ def taskFunc(params, valToUpdate, paramsToUpdate, className, runName):
     runFunc(c)
     
     return 0
-    
-    
-def finish_output():
-    
-    # print out finish time
-    now = datetime.datetime.now()
-    sys.stdout.write("job finished at %s\n\n" %str(now))
-    
-    return
-    
 
 def batchrun(p, args):
     
@@ -41,32 +31,16 @@ def batchrun(p, args):
     params.readFromFile(p['paramFile'])
     
     
-    # do serial if nprocs = 1
-    if args.np == 1:
-        
-        try:
-            for i in p['valsToUpdate']:
-                taskFunc(params, i, p['paramsToUpdate'], p['className'], p['runFunc'])
-        except KeyboardInterrupt:
-            print "caught keyboard error"
-            print "ACTIVE CHILDREN", mp.active_children()
-        finally:
-            finish_output()
-            sys.exit(1)
+    # initialize the multiprocessing master with nprocs
+    master = mputils.mp_master(args.np, len(p['valsToUpdate']))
+
+    # enqueue the tasks
+    for cnt, i  in enumerate(p['valsToUpdate']):
+        master.enqueue(mputils.task(taskFunc, params, i, p['paramsToUpdate'], p['className'], p['runFunc'], num=cnt ))
     
-    # do parallel operations
-    else:
-        
-        # initialize the multiprocessing master with nprocs
-        master = mputils.mp_master(args.np, len(p['valsToUpdate']))
-    
-        # enqueue the tasks
-        for cnt, i  in enumerate(p['valsToUpdate']):
-            master.enqueue(mputils.task(taskFunc, params, i, p['paramsToUpdate'], p['className'], p['runFunc'], num=cnt ))
-        
-        # start the work and wait until it finishes
-        master.run()
-    
+    # start the work and wait until it finishes
+    master.run()
+
     return 
         
 
