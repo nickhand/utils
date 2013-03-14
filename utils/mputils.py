@@ -19,7 +19,7 @@ class worker(mp.Process):
         mp.Process.__init__(self)
         
         def signal_handler(signal, frame):
-            os.kill()
+            sys.exit(0)
         
         signal.signal(signal.SIGINT, signal_handler) 
         
