@@ -24,23 +24,8 @@ def taskFunc(params, valToUpdate, paramsToUpdate, className, runName):
     
     return 0
     
-def setup_output():
-    
-    # redirect stdout, stderr to a file
-    sys.stderr = tempfile.TemporaryFile()
-    
-    fileName, extension = os.path.splitext(os.path.basename(sys.argv[0]))
-    sys.stdout = open(os.getcwd() + os.sep + "%s.%d.out" %(fileName, os.getpid()), 'w')
-    
-    return
     
 def finish_output():
-    
-    # append the temp stderr to stdout file
-    sys.stdout.write('%s\n' %('-'*150))
-    sys.stderr.seek(0)
-    sys.stdout.write(sys.stderr.read())
-    sys.stdout.write('%s\n' %('-'*150))
     
     # print out finish time
     now = datetime.datetime.now()
@@ -58,8 +43,6 @@ def batchrun(p, args):
     
     # do serial if nprocs = 1
     if args.np == 1:
-        
-        setup_output()
         
         try:
             for i in p['valsToUpdate']:
