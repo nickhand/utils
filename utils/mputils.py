@@ -107,12 +107,11 @@ class mp_master(object):
         
         # redirect stdout, stderr to a file
         self.temp_stderr = tempfile.TemporaryFile()
-        #sys.stderr = self.temp_stderr
+        sys.stderr = self.temp_stderr
         
         fileName, extension = os.path.splitext(os.path.basename(sys.argv[0]))
-        
         self.stdout = open(os.getcwd() + os.sep + "%s.%d.out" %(fileName, os.getpid()), 'w')
-        #sys.stdout = self.stdout
+        sys.stdout = self.stdout
         
         # set up the logger to log to sys.stderr
         self.logger = mp.log_to_stderr()
