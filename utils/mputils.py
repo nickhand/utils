@@ -109,7 +109,7 @@ class mp_master(object):
         self.temp_stderr = tempfile.TemporaryFile()
         #sys.stderr = self.temp_stderr
         
-        fileName, extension = os.path.splitext(sys.argv[0])
+        fileName, extension = os.path.splitext(os.path.basename(sys.argv[0]))
         
         self.stdout = open(os.getcwd() + os.sep + "%s.%d.out" %(fileName, os.getpid()), 'w')
         #sys.stdout = self.stdout
