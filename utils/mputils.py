@@ -144,7 +144,7 @@ class mp_master(object):
             self.tasks.join()
             
         except KeyboardInterrupt:
-            traceback.print_exception(limit=0, file=sys.stdout)
+            # traceback.print_exception(limit=0, file=sys.stdout)
             print "caught keyboard interrupt..", mp.active_children()
             for w in self.workers:
                
