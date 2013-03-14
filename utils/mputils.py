@@ -113,8 +113,6 @@ class mp_master(object):
         self.stdout = open(os.getcwd() + os.sep + "%s.%d.out" %(fileName, os.getpid()), 'w')
         sys.stdout = self.stdout
         
-        
-        print sys.stderr, sys.__stderr__
         # set up the logger to log to sys.stderr
         self.logger = mp.log_to_stderr()
         self.logger.setLevel(logging.INFO)
