@@ -1,6 +1,6 @@
 import multiprocessing as mp
 import logging, os, sys
-import traceback, time
+import traceback, time, signal
 progressLoaded = True
 try:
     from utils.utilities import initializeProgressBar
@@ -16,7 +16,15 @@ class worker(mp.Process):
     def __init__(self, task_queue, result_queue, pbar=None):
         
         # initialize a new Process for each worker
-        mp.Process.__init__(self) 
+        mp.Process.__init__(self)
+        
+        def signal_handler(signal, frame):
+            print 'You pressed Ctrl+C!'
+            # for p in jobs:
+            #     p.terminate()
+            sys.exit(0)
+        
+        signal.signal(signal.SIGINT, signal_handler) 
         
         # save the task and results queue
         self.task_queue   = task_queue 
