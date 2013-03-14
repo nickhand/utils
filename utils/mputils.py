@@ -13,7 +13,7 @@ class worker(mp.Process):
     computation, and store the results until the input queue is empty
     """
     
-    def __init__(self, task_queue, result_queue, pbar=None):
+    def __init__(self, task_queue, result_queue, except_event, pbar=None):
         
         # initialize a new Process for each worker
         mp.Process.__init__(self)
@@ -22,11 +22,15 @@ class worker(mp.Process):
         self.task_queue   = task_queue 
         self.result_queue = result_queue 
         
+        # handle the progress bar
         if pbar is not None:
             self.pbar = pbar
         else:
             self.pbar = None
 
+
+        # handle an exception
+        self.exception = except_event
             
         return
 
@@ -36,32 +40,30 @@ class worker(mp.Process):
         are none left
         """
         
-        # pull tasks until there are none left
-        while True:
+        # pull tasks until there are none left and we don't exit
+        while not self.exception.is_set():
+            
             # dequeue the next task
             next_task = self.task_queue.get()
             
-            # task = None means this worker is finished
+            # task == None means we should exit
             if next_task is None:
-                # make sure we tell the queue we finished the task
-                self.task_queue.task_done()
                 break
-                
+            
             # try to update the progress bar
             if self.pbar is not None:
                 try: 
                     self.pbar.update(next_task.num+1)
                 except:
-                    raise
-                
-            # do the work by calling the task    
-            answer = next_task()
+                    self.exception.set()
             
-            # store the answer
-            self.result_queue.put(answer)
-            
-            # make sure we tell the queue we finished the task
-            self.task_queue.task_done()
+            # try to do the work
+            try:  
+                answer = next_task()
+                self.result_queue.put(answer)
+            # set the exception event and exit
+            except:
+                self.exception.set()
         
         return 0
     
@@ -99,7 +101,7 @@ class mp_master(object):
         
         # set up the queues
         self.results = mp.Queue()
-        self.tasks = mp.JoinableQueue()
+        self.tasks = mp.Queue()
         
         # set up the logger to log to sys.stderr
         self.logger = mp.log_to_stderr()
@@ -111,9 +113,12 @@ class mp_master(object):
         else:
             bar = None
         
+        # create an exception event
+        self.exception = mp.Event()
+        
         # start a worker for each cpu available
         print 'creating %d workers' % nprocs
-        self.workers = [ worker(self.tasks, self.results, pbar=bar) for i in range(nprocs) ]
+        self.workers = [ worker(self.tasks, self.results, self.exception, pbar=bar) for i in range(nprocs) ]
         
         return
     
@@ -140,9 +145,11 @@ class mp_master(object):
             # add a poison pill for each worker
             for i in range(len(self.workers)):
                 self.tasks.put(None)
-            
-            # wait for all tasks to finish
-            self.tasks.join()
+                
+            # wait for all processes to finish
+            for w in self.workers:
+                w.join()
+                
         except:
             # close all the workers gracefully
             for w in self.workers:
