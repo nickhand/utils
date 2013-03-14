@@ -110,6 +110,7 @@ class mp_master(object):
         sys.stderr = self.temp_stderr
         
         fileName, extension = os.path.splitext(sys.argv[0])
+        print os.getcwd()
         self.stdout = open("%s/%s.%d.out" %(os.getcwd(), fileName, os.getpid()), 'w')
         sys.stdout = self.stdout
         
