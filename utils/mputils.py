@@ -205,7 +205,7 @@ class mp_master(object):
         
         # print out exit codes
         for w in self.workers:
-            self.stdout.write("exit code for Process '%s' is %s\n" % (j.name, j.exitcode)
+            self.stdout.write("exit code for Process '%s' is %s\n" % (w.name, w.exitcode))
             
         # print out finish time
         now = datetime.datetime.now()
