@@ -56,7 +56,8 @@ class worker(mp.Process):
                     self.pbar.update(next_task.num+1)
                 except:
                     self.exception.set()
-            
+                    raise
+                    
             # try to do the work
             try:  
                 answer = next_task()
@@ -156,13 +157,11 @@ class mp_master(object):
                 raise
         except:
             
-            print "IN EXCEPT"
             # close all the workers gracefully
             for w in self.workers:
                w.terminate()
                w.join()
-         
-        print "AFTER TRY/EXCEPT"       
+                
         return
         
     def dequeue(self):
