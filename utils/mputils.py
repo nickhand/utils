@@ -125,7 +125,7 @@ class mp_master(object):
             self.logger.setLevel(logging.INFO)
         
         # if we want a progress bar
-        if progress and progressLoaded and self.log:
+        if progress and progressLoaded:
             bar = initializeProgressBar(njobs, fd=sys.__stderr__)
         else:
             bar = None
