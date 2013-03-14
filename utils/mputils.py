@@ -110,7 +110,7 @@ class mp_master(object):
         sys.stderr = self.temp_stderr
         
         fileName, extension = os.path.splitext(os.path.basename(sys.argv[0]))
-        self.stdout = open(os.getcwd() + os.sep + "%s.%d.out" %(fileName, os.getpid()), 'w')
+        self.stdout = open(os.getcwd() + os.sep + "%s.%d.log" %(fileName, os.getpid()), 'w')
         sys.stdout = self.stdout
         
         # set up the logger to log to sys.stderr
