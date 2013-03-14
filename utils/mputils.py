@@ -22,8 +22,9 @@ class worker(mp.Process):
             print 'You pressed Ctrl+C!'
             p = mp.current_process()
             print p
-            p.terminate()
-            p.join()
+            sys.exit(0)
+            #p.terminate()
+            #p.join()
             
         signal.signal(signal.SIGINT, signal_handler) 
         
