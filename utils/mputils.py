@@ -151,7 +151,9 @@ class mp_master(object):
             for w in self.workers:
                 w.join()
                 
-            print "IN TRY"
+            # if exception, raise
+            if self.exception:
+                raise
         except:
             
             print "IN EXCEPT"
