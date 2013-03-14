@@ -1,6 +1,6 @@
 import multiprocessing as mp
 import logging, os, sys
-import traceback, time, signal
+import tempfile
 progressLoaded = True
 try:
     from utils.utilities import initializeProgressBar
@@ -105,13 +105,20 @@ class mp_master(object):
         self.results = mp.Queue()
         self.tasks = mp.Queue()
         
+        # redirect stdout, stderr to a file
+        self.temp_stderr = tempfile.temporaryFile()
+        sys.stderr = self.temp_stderr
+        
+        fileName, extension = os.path.splitext(sys.argv[0])
+        self.stdout = open("%s.%d.out" %(fileName, os.getpid()), 'w')
+        
         # set up the logger to log to sys.stderr
-        #self.logger = mp.log_to_stderr()
-        #self.logger.setLevel(logging.INFO)
+        self.logger = mp.log_to_stderr()
+        self.logger.setLevel(logging.INFO)
         
         # if we want a progress bar
         if progress and progressLoaded:
-            bar = initializeProgressBar(njobs)
+            bar = initializeProgressBar(njobs, fd=sys.__stderr__)
         else:
             bar = None
         
@@ -161,7 +168,12 @@ class mp_master(object):
             for w in self.workers:
                w.terminate()
                w.join()
-                
+        finally: 
+            
+            self.temp_stderr.seek(0)
+            self.stdout.write(self.temp_stderr.read())
+            self.temp_stderr.close()
+            self.stdout.close()
         return
         
     def dequeue(self):
