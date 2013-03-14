@@ -115,6 +115,8 @@ class mp_master(object):
         print 'creating %d workers' % nprocs
         self.workers = [ worker(self.tasks, self.results, pbar=bar) for i in range(nprocs) ]
         
+        sys.tracebacklimit = 0
+        
         return
     
     def enqueue(self, task):
