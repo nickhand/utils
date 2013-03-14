@@ -1,6 +1,6 @@
 import multiprocessing as mp
 import logging, os, sys
-import tempfile
+import tempfile, datetime
 progressLoaded = True
 try:
     from utils.utilities import initializeProgressBar
@@ -171,8 +171,15 @@ class mp_master(object):
                w.join()
         finally: 
             
+            # append the temp stderr to stdout file
+            self.stdout.write('%s\n' %('-'*70))
             self.temp_stderr.seek(0)
             self.stdout.write(self.temp_stderr.read())
+            self.stdout.write('%s\n' %('-'*70))
+            
+            # summary
+            self.info()
+            
             self.temp_stderr.close()
             self.stdout.close()
         return
@@ -190,4 +197,20 @@ class mp_master(object):
         """
         
         return not self.results.empty()
+    
+    def info(self):
+        """
+        @brief summarize process info
+        """
+        
+        # print out exit codes
+        for w in self.workers:
+            self.stdout.write("exit code for Process '%s' is %s\n" % (j.name, j.exitcode)
+            
+        # print out finish time
+        now = datetime.datetime.now()
+        self.stdout.write("job finished at %s\n\n" %str(now))
+        
+        return
+        
     
