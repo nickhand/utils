@@ -32,7 +32,7 @@ def batchrun(p, args):
     
     
     # initialize the multiprocessing master with nprocs
-    master = mputils.mp_master(args.np, len(p['valsToUpdate']))
+    master = mputils.mp_master(args.np, len(p['valsToUpdate']), progress=not args.nopbar, log=not args.show)
 
     # enqueue the tasks
     for cnt, i  in enumerate(p['valsToUpdate']):
@@ -50,16 +50,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="run a given executable in batch mode, with specified parameters")
     parser.add_argument('param_file', type=str, help='the parameter file') 
     parser.add_argument('--np', type=int, default=1, help="number of processors to use")
-    parser.add_argument('-q', '--quiet', action='store_true', default=False, help='whether to ouput to std out')
+    parser.add_argument('-s', '--show', action='store_true', default=False, help='whether to show stdout or redirect to file')
+    parser.add_argument('--nopbar', action='store_true', default=False, help='whether to use a progress bar')
   
     args = parser.parse_args()
 
     # read in the parameter file
     p = flipperDict.flipperDict()
     p.readFromFile(args.param_file)
-    
-    # if we want to suppress out, redirect stdout to nothing
-    if args.quiet:
-        sys.stdout = open(os.devnull, "w")
     
     batchrun(p, args)

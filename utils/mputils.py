@@ -96,7 +96,7 @@ class mp_master(object):
     @brief a class to control a multiprocessing job 
     """
     
-    def __init__(self, nprocs, njobs, progress=True):
+    def __init__(self, nprocs, njobs, progress=True, log=True):
         """
         @brief initialize the input/output queues and make the workers
         """
@@ -105,23 +105,27 @@ class mp_master(object):
         self.results = mp.Queue()
         self.tasks = mp.Queue()
         
-        # redirect stdout, stderr to a file
-        self.temp_stderr = tempfile.TemporaryFile()
-        sys.stderr = self.temp_stderr
+        self.log = log
+        if self.log:
         
-        fileName, extension = os.path.splitext(os.path.basename(sys.argv[0]))
-        timeStamp = time.gmtime(time.time())
-        formatString = "%Y-%m-%d-%H-%M-%S"
-        timeStamp = time.strftime(formatString, timeStamp)
-        self.stdout = open(os.getcwd() + os.sep + "%s.%s.log" %(fileName, timeStamp), 'w')
-        sys.stdout = self.stdout
+            # redirect stderr to a file
+            self.temp_stderr = tempfile.TemporaryFile()
+            sys.stderr = self.temp_stderr
         
-        # set up the logger to log to sys.stderr
-        self.logger = mp.log_to_stderr()
-        self.logger.setLevel(logging.INFO)
+            # make a unique file name for std out
+            fileName, extension = os.path.splitext(os.path.basename(sys.argv[0]))
+            timeStamp = time.gmtime(time.time())
+            formatString = "%Y-%m-%d-%H-%M-%S"
+            timeStamp = time.strftime(formatString, timeStamp)
+            self.stdout = open(os.getcwd() + os.sep + "%s.%s.log" %(fileName, timeStamp), 'w')
+            sys.stdout = self.stdout
+        
+            # set up the logger to log to sys.stderr
+            self.logger = mp.log_to_stderr()
+            self.logger.setLevel(logging.INFO)
         
         # if we want a progress bar
-        if progress and progressLoaded:
+        if progress and progressLoaded and self.log:
             bar = initializeProgressBar(njobs, fd=sys.__stderr__)
         else:
             bar = None
@@ -175,16 +179,18 @@ class mp_master(object):
         finally: 
             
             # append the temp stderr to stdout file
-            self.stdout.write('%s\n' %('-'*100))
-            self.temp_stderr.seek(0)
-            self.stdout.write(self.temp_stderr.read())
-            self.stdout.write('%s\n' %('-'*100))
+            if self.log:
+                self.stdout.write('%s\n' %('-'*100))
+                self.temp_stderr.seek(0)
+                self.stdout.write(self.temp_stderr.read())
+                self.stdout.write('%s\n' %('-'*100))
             
             # summary
             self.info()
             
-            self.temp_stderr.close()
-            self.stdout.close()
+            if self.log:
+                self.temp_stderr.close()
+                self.stdout.close()
         
         return
         
@@ -209,11 +215,11 @@ class mp_master(object):
         
         # print out exit codes
         for w in self.workers:
-            self.stdout.write("exit code for Process '%s' is %s\n" % (w.name, w.exitcode))
+            sys.stdout.write("exit code for Process '%s' is %s\n" % (w.name, w.exitcode))
             
         # print out finish time
         now = datetime.datetime.now()
-        self.stdout.write("job finished at %s\n\n" %str(now))
+        sys.stdout.write("job finished at %s\n\n" %str(now))
         
         return
         
