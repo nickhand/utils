@@ -17,11 +17,11 @@ class worker(mp.Process):
         
         # initialize a new Process for each worker
         mp.Process.__init__(self)
-        
+
+        # set up the signal handler to gracefully handle interrupts in child
         def signal_handler(signal, frame):
             sys.exit(0)
 
-            
         signal.signal(signal.SIGINT, signal_handler) 
         
         # save the task and results queue
@@ -34,7 +34,6 @@ class worker(mp.Process):
             self.pbar = None
             
         return
-        
 
     def run(self):
         """
@@ -108,8 +107,8 @@ class mp_master(object):
         self.tasks = mp.JoinableQueue()
         
         # set up the logger to log to sys.stderr
-        #self.logger = mp.log_to_stderr()
-        #self.logger.setLevel(logging.INFO)
+        self.logger = mp.log_to_stderr()
+        self.logger.setLevel(logging.INFO)
         
         # if we want a progress bar
         if progress and progressLoaded:
@@ -120,8 +119,6 @@ class mp_master(object):
         # start a worker for each cpu available
         print 'creating %d workers' % nprocs
         self.workers = [ worker(self.tasks, self.results, pbar=bar) for i in range(nprocs) ]
-        
-        sys.tracebacklimit = 0
         
         return
     
@@ -152,9 +149,7 @@ class mp_master(object):
             self.tasks.join()
             
         except KeyboardInterrupt:
-            time.sleep(30)
-            # traceback.print_exception(limit=0, file=sys.stdout)
-            print "caught keyboard interrupt..", mp.active_children()
+            
             for w in self.workers:
                w.terminate()
                w.join()
