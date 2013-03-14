@@ -64,7 +64,7 @@ class worker(mp.Process):
             # set the exception event and exit
             except:
                 self.exception.set()
-        
+                raise
         return 0
     
 class task(object):
