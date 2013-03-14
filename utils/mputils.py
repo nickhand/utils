@@ -143,13 +143,11 @@ class mp_master(object):
             self.tasks.join()
             
         except KeyboardInterrupt:
+            
             print "caught keyboard interrupt.."
-            pid, status = os.waitpid(-1, 0)
-            print pid, status
-            print mp.active_children()
-            #for w in self.workers:
-            #    w.terminate()
-            #    w.join()
+            for w in self.workers:
+               w.terminate()
+               w.join()
             
         
         return
