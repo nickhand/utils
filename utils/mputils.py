@@ -113,6 +113,8 @@ class mp_master(object):
         self.stdout = open(os.getcwd() + os.sep + "%s.%d.out" %(fileName, os.getpid()), 'w')
         sys.stdout = self.stdout
         
+        
+        print sys.stderr, sys.__stderr__
         # set up the logger to log to sys.stderr
         self.logger = mp.log_to_stderr()
         self.logger.setLevel(logging.INFO)
@@ -172,16 +174,17 @@ class mp_master(object):
         finally: 
             
             # append the temp stderr to stdout file
-            self.stdout.write('%s\n' %('-'*70))
+            self.stdout.write('%s\n' %('-'*150))
             self.temp_stderr.seek(0)
             self.stdout.write(self.temp_stderr.read())
-            self.stdout.write('%s\n' %('-'*70))
+            self.stdout.write('%s\n' %('-'*150))
             
             # summary
             self.info()
             
             self.temp_stderr.close()
             self.stdout.close()
+        
         return
         
     def dequeue(self):
