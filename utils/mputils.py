@@ -107,7 +107,7 @@ class mp_master(object):
         
         # set up the logger to log to sys.stderr
         self.logger = mp.log_to_stderr()
-        self.logger.setLevel(logging.DEBUG)
+        self.logger.setLevel(logging.INFO)
         
         # if we want a progress bar
         if progress and progressLoaded:
