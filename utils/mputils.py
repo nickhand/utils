@@ -61,10 +61,11 @@ class worker(mp.Process):
             try:  
                 answer = next_task()
                 self.result_queue.put(answer)
-            # set the exception event and exit
+            # set the exception event so main process knows to exit, and then raise the exception
             except:
                 self.exception.set()
                 raise
+                
         return 0
     
 class task(object):
@@ -150,7 +151,9 @@ class mp_master(object):
             for w in self.workers:
                 w.join()
                 
+            print "OR ARE WE HERE?"
         except:
+            print "ARE WE HERE?"
             # close all the workers gracefully
             for w in self.workers:
                w.terminate()
