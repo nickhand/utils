@@ -17,12 +17,6 @@ class worker(mp.Process):
         
         # initialize a new Process for each worker
         mp.Process.__init__(self)
-
-        # set up the signal handler to gracefully handle interrupts in child
-        def signal_handler(signal, frame):
-            sys.exit(0)
-
-        signal.signal(signal.SIGINT, signal_handler) 
         
         # save the task and results queue
         self.task_queue   = task_queue 
@@ -136,18 +130,24 @@ class mp_master(object):
         @brief start the workers and do the work
         """
         
-        # start the work
-        for w in self.workers:
-            w.start()
-        
-        # add a poison pill for each worker
-        for i in range(len(self.workers)):
-            self.tasks.put(None)
-        
-        # wait for all tasks to finish
-        self.tasks.join()
+        try: 
+            # start the work
+            for w in self.workers:
+                w.start()
             
-
+            # add a poison pill for each worker
+            for i in range(len(self.workers)):
+                self.tasks.put(None)
+            
+            # wait for all tasks to finish
+            self.tasks.join()
+            
+        except:
+            
+            for w in self.workers:
+               w.terminate()
+               w.join()
+                
         
         return
         
