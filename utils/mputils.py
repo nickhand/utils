@@ -147,7 +147,7 @@ class mp_master(object):
             print "caught keyboard interrupt.."
             for w in self.workers:
                print "PID", w.pid
-               os.waitpid(w.pid)
+               os.waitpid(w.pid, 0)
                w.terminate()
                w.join()
             
