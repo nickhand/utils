@@ -1,6 +1,6 @@
 import multiprocessing as mp
 import logging, os, sys
-import traceback
+import traceback, time
 progressLoaded = True
 try:
     from utils.utilities import initializeProgressBar
@@ -146,13 +146,13 @@ class mp_master(object):
             self.tasks.join()
             
         except KeyboardInterrupt:
+            time.sleep(30)
             # traceback.print_exception(limit=0, file=sys.stdout)
             print "caught keyboard interrupt..", mp.active_children()
             for w in self.workers:
-               
-               #w.terminate()
-               #w.join()
-                os.kill(w.pid)
+               w.terminate()
+               w.join()
+                
         
         return
         
