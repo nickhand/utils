@@ -47,8 +47,8 @@ def batchrun(p, args):
         try:
             for i in p['valsToUpdate']:
                 taskFunc(params, i, p['paramsToUpdate'], p['className'], p['runFunc'])
-        except:
-            raise
+        except KeyboardInterrupt:
+            print "caught keyboard error"
         finally:
             finish_output()
             sys.exit(1)
