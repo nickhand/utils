@@ -19,10 +19,7 @@ class worker(mp.Process):
         mp.Process.__init__(self)
         
         def signal_handler(signal, frame):
-            print 'You pressed Ctrl+C!'
-            # for p in jobs:
-            #     p.terminate()
-            sys.exit(0)
+            os.kill()
         
         signal.signal(signal.SIGINT, signal_handler) 
         
