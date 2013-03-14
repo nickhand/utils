@@ -17,12 +17,6 @@ class worker(mp.Process):
         
         # initialize a new Process for each worker
         mp.Process.__init__(self)
-
-        # set up the signal handler to gracefully handle interrupts in child
-        def signal_handler(signal, frame):
-            sys.exit(0)
-
-        signal.signal(signal.SIGINT, signal_handler) 
         
         # save the task and results queue
         self.task_queue   = task_queue 
@@ -101,6 +95,11 @@ class mp_master(object):
         """
         @brief initialize the input/output queues and make the workers
         """
+        
+        # set up the signal handler to gracefully handle interrupts in child
+        def signal_handler(signal, frame):
+            sys.exit(0)
+        signal.signal(signal.SIGINT, signal_handler)
         
         # set up the queues
         self.results = mp.Queue()
