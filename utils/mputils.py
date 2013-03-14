@@ -172,10 +172,10 @@ class mp_master(object):
         finally: 
             
             # append the temp stderr to stdout file
-            self.stdout.write('%s\n' %('-'*150))
+            self.stdout.write('%s\n' %('-'*100))
             self.temp_stderr.seek(0)
             self.stdout.write(self.temp_stderr.read())
-            self.stdout.write('%s\n' %('-'*150))
+            self.stdout.write('%s\n' %('-'*100))
             
             # summary
             self.info()
