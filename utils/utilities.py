@@ -256,11 +256,11 @@ def getIDFromRADec(ra, dec, tag):
 
     return iau_name
         
-def initializeProgressBar(N):
+def initializeProgressBar(N, fd=sys.stderr):
     """
     @brief initialize a progress bar with N total ticks
     """
-    bar = pb.ProgressBar(maxval=N, term_width = 100, widgets=[pb.Bar('=', '[', ']'), ' ', pb.Percentage()])
+    bar = pb.ProgressBar(maxval=N, fd=fd, term_width = 100, widgets=[pb.Bar('=', '[', ']'), ' ', pb.Percentage()])
     return bar
     
 def getDuplicatesFromList(L):
