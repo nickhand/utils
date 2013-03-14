@@ -151,12 +151,16 @@ class mp_master(object):
             for w in self.workers:
                 w.join()
                 
+            print "IN TRY"
         except:
+            
+            print "IN EXCEPT"
             # close all the workers gracefully
             for w in self.workers:
                w.terminate()
                w.join()
-                
+         
+        print "AFTER TRY/EXCEPT"       
         return
         
     def dequeue(self):
