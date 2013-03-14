@@ -51,6 +51,7 @@ def batchrun(p, args):
             raise
         finally:
             finish_output()
+            sys.exit(1)
     
     # do parallel operations
     else:
