@@ -151,9 +151,7 @@ class mp_master(object):
             for w in self.workers:
                 w.join()
                 
-            print "OR ARE WE HERE?"
         except:
-            print "ARE WE HERE?"
             # close all the workers gracefully
             for w in self.workers:
                w.terminate()
