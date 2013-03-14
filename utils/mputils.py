@@ -26,6 +26,7 @@ class worker(mp.Process):
             self.pbar = pbar
         else:
             self.pbar = None
+
             
         return
 
@@ -114,7 +115,6 @@ class mp_master(object):
         print 'creating %d workers' % nprocs
         self.workers = [ worker(self.tasks, self.results, pbar=bar) for i in range(nprocs) ]
         
-        
         return
     
     def enqueue(self, task):
@@ -142,17 +142,13 @@ class mp_master(object):
                 self.tasks.put(None)
             
             # wait for all tasks to finish
-            print "BEFORE JOIN"
             self.tasks.join()
-            print "AFTER JOIN"
         except:
-            print "IN EXCEPT"
             # close all the workers gracefully
             for w in self.workers:
                w.terminate()
                w.join()
                 
-        
         return
         
     def dequeue(self):
