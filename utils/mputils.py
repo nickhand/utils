@@ -113,7 +113,7 @@ class mp_master(object):
         timeStamp = time.gmtime(time.time())
         formatString = "%Y-%m-%d-%H-%M-%S"
         timeStamp = time.strftime(formatString, timeStamp)
-        self.stdout = open(os.getcwd() + os.sep + "%s.%d.log" %(fileName, timeStamp), 'w')
+        self.stdout = open(os.getcwd() + os.sep + "%s.%s.log" %(fileName, timeStamp), 'w')
         sys.stdout = self.stdout
         
         # set up the logger to log to sys.stderr
