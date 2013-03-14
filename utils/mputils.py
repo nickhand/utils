@@ -19,12 +19,8 @@ class worker(mp.Process):
         mp.Process.__init__(self)
         
         def signal_handler(signal, frame):
-            print 'You pressed Ctrl+C!'
-            p = mp.current_process()
-            print p
             sys.exit(0)
-            #p.terminate()
-            #p.join()
+
             
         signal.signal(signal.SIGINT, signal_handler) 
         
@@ -112,8 +108,8 @@ class mp_master(object):
         self.tasks = mp.JoinableQueue()
         
         # set up the logger to log to sys.stderr
-        self.logger = mp.log_to_stderr()
-        self.logger.setLevel(logging.INFO)
+        #self.logger = mp.log_to_stderr()
+        #self.logger.setLevel(logging.INFO)
         
         # if we want a progress bar
         if progress and progressLoaded:
