@@ -30,7 +30,7 @@ def taskFunc(params, valToUpdate, paramsToUpdate, className, runName):
     # run the method, with class as first argument
     runFunc(c)
     
-    return 0
+    return 
 
 def batchrun(p, args):
     
@@ -38,16 +38,26 @@ def batchrun(p, args):
     params = flipperDict.flipperDict()
     params.readFromFile(p['paramFile'])    
     
-    # initialize the multiprocessing master with nprocs
-    master = mputils.mp_master(args.np, len(p['valsToUpdate']), progress=not args.nopbar, log=not args.show)
-
-    # enqueue the tasks
-    for cnt, i  in enumerate(p['valsToUpdate']):
-        master.enqueue(mputils.task(taskFunc, params, i, p['paramsToUpdate'], p['className'], p['runFunc'], num=cnt ))
+    if args.np > 1:
     
-    # start the work and wait until it finishes
-    master.run()
+        # initialize the multiprocessing master with nprocs
+        master = mputils.mp_master(args.np, len(p['valsToUpdate']), progress=not args.nopbar, log=not args.show)
 
+        # enqueue the tasks
+        for cnt, i  in enumerate(p['valsToUpdate']):
+            master.enqueue(mputils.task(taskFunc, params, i, p['paramsToUpdate'], p['className'], p['runFunc'], num=cnt ))
+    
+        # start the work and wait until it finishes
+        master.run()
+    else:
+        
+        try:
+            for cnt, i  in enumerate(p['valsToUpdate']):
+                taskFunc(params, i, p['paramsToUpdate'], p['className'], p['runFunc'])
+        except:
+            print "IN EXCEPT"
+            raise
+        
     return 
         
 
