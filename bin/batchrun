@@ -55,7 +55,6 @@ def batchrun(p, args):
             for cnt, i  in enumerate(p['valsToUpdate']):
                 taskFunc(params, i, p['paramsToUpdate'], p['className'], p['runFunc'])
         except:
-            print "IN EXCEPT"
             raise
         
     return 
