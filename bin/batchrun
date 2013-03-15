@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 """
- batchrun
- <executable to run a another code in batch mode, perhaps using multiprocessing>
+ batchrun:
+ executable to run an input code in batch mode, perhaps using multiprocessing
  
  author: Nick Hand
  contact: nhand@berkeley.edu
  creation date: 03/14/2013
 """
-
-
 import argparse, os, sys
 from utils import utilities, mputils
 from flipper import flipperDict
