@@ -22,13 +22,19 @@ def update_dict(d, value, keysToUpdate):
         try:
             newDict[k] = v %value    
         except:
-            for kk, vv in newDict.iteritems():
-                if type(vv) == dict:
-                    if k in vv.keys():
-                        newDict[kk][k] = v %value
-                        break
-                        
-            raise
+            
+            if '/' in k:
+                fields = k.split('/')
+                updated = False
+                x = newDict
+                index = 0
+                while fields[-1] not in x.keys():
+                    x = x[fields[index]]
+                    index += 1
+                x[fields[-1]] = v %value     
+                
+            else:
+                raise
         
     return newDict
 
