@@ -18,7 +18,17 @@ def update_dict(d, value, keysToUpdate):
     
     # update each key-value pair
     for k, v in keysToUpdate.iteritems():
-        newDict[k] = v %value    
+        
+        try:
+            newDict[k] = v %value    
+        except:
+            for kk, vv in newDict.iteritems():
+                if type(vv) == dict:
+                    if k in vv.keys():
+                        newDict[kk][k] = v %value
+                        break
+                        
+            raise
         
     return newDict
 
