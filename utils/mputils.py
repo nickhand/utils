@@ -18,12 +18,14 @@ class worker(mp.Process):
         # initialize a new Process for each worker
         mp.Process.__init__(self)
         
+        
         # save the task and results queue
         self.task_queue   = task_queue 
         self.result_queue = result_queue 
         
         # handle the progress bar
         if pbar is not None:
+            
             self.pbar = pbar
         else:
             self.pbar = None
