@@ -189,10 +189,6 @@ class mp_master(object):
             
             # summary
             self.info()
-            
-            if self.log:
-                self.temp_stderr.close()
-                self.stdout.close()
         
         return
         
