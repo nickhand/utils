@@ -168,7 +168,7 @@ class mp_master(object):
                 w.join()
                 
             # if exception, raise
-            if self.exception:
+            if self.exception.is_set():
                 raise
         except:
             
