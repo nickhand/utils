@@ -19,10 +19,9 @@ def update_dict(d, value, keysToUpdate):
     # update each key-value pair
     for k, v in keysToUpdate.iteritems():
         
-        try:
+        if k in newDict.keys():
             newDict[k] = v %value    
-        except:
-            
+        else:
             if '/' in k:
                 fields = k.split('/')
                 print fields
@@ -37,7 +36,7 @@ def update_dict(d, value, keysToUpdate):
                 x[fields[-1]] = v %value     
                 
             else:
-                raise
+                raise KeyError
         
     return newDict
 
