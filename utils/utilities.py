@@ -24,12 +24,10 @@ def update_dict(d, value, keysToUpdate):
         else:
             if '/' in k:
                 fields = k.split('/')
-                print fields
                 updated = False
                 x = newDict
                 index = 0
                 while fields[-1] not in x.keys():
-                    print x
                     x = x[fields[index]]
                     index += 1
             
