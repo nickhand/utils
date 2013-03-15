@@ -66,8 +66,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="run a given executable in batch mode, with specified parameters")
     parser.add_argument('param_file', type=str, help='the parameter file') 
     parser.add_argument('--np', type=int, default=1, help="number of processors to use")
-    parser.add_argument('-s', '--show', action='store_true', default=False, help='whether to show stdout or redirect to file')
-    parser.add_argument('--nopbar', action='store_true', default=False, help='whether to use a progress bar')
+    parser.add_argument('-s', '--show', action='store_true', default=False, help='print stdout to the terminal')
+    parser.add_argument('--nopbar', action='store_true', default=False, help='do not show the progress bar')
   
     args = parser.parse_args()
 
