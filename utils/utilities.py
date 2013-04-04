@@ -7,6 +7,8 @@ import pylab
 from catIO import catalog
 import collections
 import sys
+import itertools
+import operator
 
 
 def update_dict(d, value, keysToUpdate):
@@ -436,3 +438,12 @@ def blur_image(im, n, ny=None) :
     improc = signal.convolve(im, g, mode='valid')
     return(improc)
     
+def get_consecutive_ints(array):
+    """
+    @brief break the input array into arrays of consecutive integers
+    """
+    output = []
+    for k, g in itertools.groupby(enumerate(array), lambda (i,x):i-x):
+        output.append(map(operator.itemgetter(1), g))
+        
+    return np.array(output)
