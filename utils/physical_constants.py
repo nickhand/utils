@@ -49,7 +49,8 @@ inch     = 2.54   * cm
 mm       = 0.1    * cm  
 micron   = 1.0e-4 * cm  
 angstrom = 1e-8   * cm
-jansky   = 1.0e-23                # erg/s/cm/cm/Hz
+jansky   = 1.0e-23            # erg/s/cm/cm/Hz
+barn     = 1e-24  * cm**2
 
 # energy and power conversion factors
 joule           = 1e7 * erg
