@@ -447,3 +447,16 @@ def get_consecutive_ints(array):
         output.append(map(operator.itemgetter(1), g))
         
     return np.array(output)
+    
+def chunks(l, n):
+    """ 
+    @brief yield n successive chunks from l.
+    """
+    out = []
+    newn = int(len(l) / n)
+    for i in xrange(0, n-1):
+        out.append(l[i*newn:i*newn+newn])
+    
+    out.append(l[n*newn-newn:])
+    
+    return out
