@@ -71,6 +71,7 @@ class worker(mp.Process):
         
         print 'returning from worker...'     
         self.terminate()
+        self.join()
         return 0
     
 class task(object):
@@ -160,7 +161,6 @@ class mp_master(object):
         # make sure to catch exceptions
         try: 
             # start the work
-            print len(self.workers)
             for w in self.workers:
                 w.start()
             
@@ -169,12 +169,9 @@ class mp_master(object):
                 self.tasks.put(None)
                 
             # wait for all processes to finish
-            print 'joining workers...'
-            print mp.active_children()
             for w in self.workers:
                 w.join()
-            print mp.active_children()
-            print 'workers are unjoined'
+            
             # if exception, raise
             if self.exception.is_set():
                 raise
