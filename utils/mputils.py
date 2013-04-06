@@ -91,8 +91,6 @@ class task(object):
     
         return ans
 
-
-
 class mp_master(object):
     """
     @brief a class to control a multiprocessing job 
