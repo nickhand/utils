@@ -110,14 +110,14 @@ class mp_master(object):
         
             # redirect stderr to a file
             self.temp_stderr = tempfile.TemporaryFile()
-            sys.stderr = self.temp_stderr
+            #sys.stderr = self.temp_stderr
         
             # make a unique file name for std out
             fileName, extension = os.path.splitext(os.path.basename(sys.argv[0]))
             timeStamp = time.gmtime(time.time())
             formatString = "%Y-%m-%d-%H-%M-%S"
             timeStamp = time.strftime(formatString, timeStamp)
-            self.stdout = open(os.getcwd() + os.sep + "%s.%s.log" %(fileName, timeStamp), 'w')
+            #self.stdout = open(os.getcwd() + os.sep + "%s.%s.log" %(fileName, timeStamp), 'w')
             sys.stdout = self.stdout
         
             # set up the logger to log to sys.stderr
