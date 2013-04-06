@@ -68,9 +68,7 @@ class worker(mp.Process):
             
             i += 1
         
-        print 'returning from worker...'   
-        print 'terminating'
-        self.terminate()
+        print 'returning from worker...'  
         return 0
     
 class task(object):
