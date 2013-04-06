@@ -89,7 +89,7 @@ class task(object):
         
         # call the function with the arguments
         ans = self.func(*self.args)
-        print ans
+    
         return ans
 
 
@@ -169,8 +169,9 @@ class mp_master(object):
             # wait for all processes to finish
             print 'joining workers...'
             print mp.active_children()
-            #for w in self.workers:
-            #     w.join()
+            for w in self.workers:
+                print w
+                w.join()
             print mp.active_children()
             print 'workers are unjoined'
             # if exception, raise
