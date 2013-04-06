@@ -48,8 +48,10 @@ class worker(mp.Process):
             # dequeue the next task
             next_task = self.task_queue.get()
             
+            print next_task
             # task == None means we should exit
             if next_task is None:
+                print "breaking while loop in worker.."
                 break
             
             # try to update the progress bar
