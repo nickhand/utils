@@ -45,7 +45,6 @@ class worker(mp.Process):
         # pull tasks until there are none left and we don't exit
         while not self.exception.is_set():
             
-            print i
             # dequeue the next task
             next_task = self.task_queue.get()
             
@@ -72,7 +71,8 @@ class worker(mp.Process):
             
             i += 1
         
-        print 'returning from worker...'     
+        print 'returning from worker...'
+        print self.task_queue     
         return 0
     
 class task(object):
@@ -138,7 +138,7 @@ class mp_master(object):
         
         # create an exception event
         self.exception = mp.Event()
-        
+         
         # start a worker for each cpu available
         print 'creating %d workers' % nprocs
         self.workers = [ worker(self.tasks, self.results, self.exception, pbar=bar) for i in range(nprocs) ]
