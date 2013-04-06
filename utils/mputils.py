@@ -18,6 +18,7 @@ class worker(mp.Process):
         # initialize a new Process for each worker
         mp.Process.__init__(self)
         
+        self.exit = mp.Event()
         
         # save the task and results queue
         self.task_queue   = task_queue 
@@ -43,14 +44,14 @@ class worker(mp.Process):
         """
         i = 0
         # pull tasks until there are none left and we don't exit
-        while not self.exception.is_set():
+        while not self.exception.is_set() and self.exit.is_set():
             
             # dequeue the next task
             next_task = self.task_queue.get()
             
             # task == None means we should exit
             if next_task is None:
-                break
+                self.exit.set()
             
             # try to update the progress bar
             if self.pbar is not None:
@@ -71,8 +72,7 @@ class worker(mp.Process):
             
             i += 1
         
-        print 'returning from worker...'
-        print self.task_queue     
+        print 'returning from worker...'   
         return 0
     
 class task(object):
@@ -170,8 +170,8 @@ class mp_master(object):
                 self.tasks.put(None)
                 
             # wait for all processes to finish
-            for w in self.workers:
-                w.join()
+            # for w in self.workers:
+            #     w.join()
             
             # if exception, raise
             if self.exception.is_set():
