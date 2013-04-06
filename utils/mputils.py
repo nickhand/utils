@@ -44,7 +44,7 @@ class worker(mp.Process):
         """
         i = 0
         # pull tasks until there are none left and we don't exit
-        while not self.exception.is_set() and self.exit.is_set():
+        while not self.exception.is_set() and not self.exit.is_set():
             
             # dequeue the next task
             next_task = self.task_queue.get()
