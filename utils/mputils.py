@@ -41,10 +41,11 @@ class worker(mp.Process):
         @brief start the worker class doing the tasks until there
         are none left
         """
-        
+        i = 0
         # pull tasks until there are none left and we don't exit
         while not self.exception.is_set():
             
+            print i
             # dequeue the next task
             next_task = self.task_queue.get()
             
@@ -68,10 +69,10 @@ class worker(mp.Process):
             except:
                 self.exception.set()
                 raise
+            
+            i += 1
         
         print 'returning from worker...'     
-        self.terminate()
-        self.join()
         return 0
     
 class task(object):
