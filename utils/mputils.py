@@ -89,7 +89,7 @@ class task(object):
         
         # call the function with the arguments
         ans = self.func(*self.args)
-            
+        print ans
         return ans
 
 
