@@ -160,6 +160,7 @@ class mp_master(object):
         # make sure to catch exceptions
         try: 
             # start the work
+            print len(self.workers)
             for w in self.workers:
                 w.start()
             
