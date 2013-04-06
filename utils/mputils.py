@@ -52,6 +52,7 @@ class worker(mp.Process):
             # task == None means we should exit
             if next_task is None:
                 self.exit.set()
+                continue
             
             # try to update the progress bar
             if self.pbar is not None:
