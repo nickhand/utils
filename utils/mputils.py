@@ -168,9 +168,9 @@ class mp_master(object):
             for i in range(len(self.workers)):
                 self.tasks.put(None)
                 
-            # wait for all processes to finish
-            for w in self.workers:
-                w.join()
+            # # wait for all processes to finish
+            # for w in self.workers:
+            #     w.join()
             
             # if exception, raise
             if self.exception.is_set():
