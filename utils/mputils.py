@@ -200,8 +200,11 @@ class mp_master(object):
         """
         @brief dequeue the results, if available, else None
         """
-        
-        return self.results.get()
+        while any([w.is_alive() for w in self.workers]):
+            while not self.results.empty():
+                self.deqd_results.append(self.results.get())
+                
+        return self.deqd_results
 
     def more_results(self):
         """
