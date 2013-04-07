@@ -154,39 +154,39 @@ class mp_master(object):
         """
         
         # make sure to catch exceptions
-        try: 
-            # start the work
-            for w in self.workers:
-                w.start()
+#        try: 
+        # start the work
+        for w in self.workers:
+            w.start()
+        
+        # add a poison pill for each worker
+        for i in range(len(self.workers)):
+            self.tasks.put(None)
             
-            # add a poison pill for each worker
-            for i in range(len(self.workers)):
-                self.tasks.put(None)
-                
-            # wait for all processes to finish
-            for w in self.workers:
-                w.join()
-            
-            # if exception, raise
-            if self.exception.is_set():
-                raise
-        except:
-            
-            # close all the workers gracefully
-            for w in self.workers:
-               w.terminate()
-               w.join()
-        finally: 
-            
-            # append the temp stderr to stdout file
-            if self.log:
-                self.stdout.write('%s\n' %('-'*100))
-                self.temp_stderr.seek(0)
-                self.stdout.write(self.temp_stderr.read())
-                self.stdout.write('%s\n' %('-'*100))
-            
-            # summary
-            self.info()
+        # wait for all processes to finish
+        for w in self.workers:
+            w.join()
+        
+        # if exception, raise
+        if self.exception.is_set():
+            raise
+       # except:
+       #      
+       #      # close all the workers gracefully
+       #      for w in self.workers:
+       #         w.terminate()
+       #         w.join()
+       #  finally: 
+       #      
+       #      # append the temp stderr to stdout file
+       #      if self.log:
+       #          self.stdout.write('%s\n' %('-'*100))
+       #          self.temp_stderr.seek(0)
+       #          self.stdout.write(self.temp_stderr.read())
+       #          self.stdout.write('%s\n' %('-'*100))
+       #      
+       #      # summary
+       #      self.info()
         
         return
         
