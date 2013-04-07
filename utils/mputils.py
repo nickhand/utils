@@ -166,9 +166,7 @@ class mp_master(object):
             for i in range(len(self.workers)):
                 self.tasks.put(None)
                 
-            # wait for all processes to finish
-            # for w in self.workers:
-            #     w.join()
+            # while processes still alive, dequeue the results and store
             while any([w.is_alive() for w in self.workers]):
                 while not self.results.empty():
                     self.deqd_results.append(self.results.get())
@@ -198,11 +196,12 @@ class mp_master(object):
         
     def dequeue(self):
         """
-        @brief dequeue the results, if available, else None
+        @brief dequeue all the results
         """
-        while any([w.is_alive() for w in self.workers]):
-            while not self.results.empty():
-                self.deqd_results.append(self.results.get())
+        
+        # dequeue any results still on the results queue
+        while not self.results.empty():
+            self.deqd_results.append(self.results.get())
                 
         return self.deqd_results
 
