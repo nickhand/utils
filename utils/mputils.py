@@ -157,7 +157,7 @@ class mp_master(object):
 #        try: 
         # start the work
         for w in self.workers:
-            w.start()
+            w.run()
         
         # add a poison pill for each worker
         for i in range(len(self.workers)):
