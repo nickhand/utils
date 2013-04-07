@@ -18,15 +18,18 @@ class worker(mp.Process):
         # initialize a new Process for each worker
         mp.Process.__init__(self)
         
+        
         # save the task and results queue
         self.task_queue   = task_queue 
         self.result_queue = result_queue 
         
         # handle the progress bar
         if pbar is not None:
+            
             self.pbar = pbar
         else:
             self.pbar = None
+
 
         # handle an exception
         self.exception = except_event
@@ -38,7 +41,7 @@ class worker(mp.Process):
         @brief start the worker class doing the tasks until there
         are none left
         """
-        i = 0
+        
         # pull tasks until there are none left and we don't exit
         while not self.exception.is_set():
             
@@ -65,10 +68,7 @@ class worker(mp.Process):
             except:
                 self.exception.set()
                 raise
-            
-            i += 1
-        
-        print 'returning from worker...'  
+                
         return 0
     
 class task(object):
@@ -88,8 +88,10 @@ class task(object):
         
         # call the function with the arguments
         ans = self.func(*self.args)
-    
+            
         return ans
+
+
 
 class mp_master(object):
     """
@@ -104,25 +106,26 @@ class mp_master(object):
         # set up the queues
         self.results = mp.Queue()
         self.tasks = mp.Queue()
+        self.deqd_results = []
         
         self.log = log
         if self.log:
         
-            # # redirect stderr to a file
-            # self.temp_stderr = tempfile.TemporaryFile()
-            # #sys.stderr = self.temp_stderr
-            #         
-            # # make a unique file name for std out
-            # fileName, extension = os.path.splitext(os.path.basename(sys.argv[0]))
-            # timeStamp = time.gmtime(time.time())
-            # formatString = "%Y-%m-%d-%H-%M-%S"
-            # timeStamp = time.strftime(formatString, timeStamp)
-            # #self.stdout = open(os.getcwd() + os.sep + "%s.%s.log" %(fileName, timeStamp), 'w')
-            # sys.stdout = self.stdout
-            #         
+            # redirect stderr to a file
+            self.temp_stderr = tempfile.TemporaryFile()
+            sys.stderr = self.temp_stderr
+        
+            # make a unique file name for std out
+            fileName, extension = os.path.splitext(os.path.basename(sys.argv[0]))
+            timeStamp = time.gmtime(time.time())
+            formatString = "%Y-%m-%d-%H-%M-%S"
+            timeStamp = time.strftime(formatString, timeStamp)
+            self.stdout = open(os.getcwd() + os.sep + "%s.%s.log" %(fileName, timeStamp), 'w')
+            sys.stdout = self.stdout
+        
             # set up the logger to log to sys.stderr
             self.logger = mp.log_to_stderr()
-            self.logger.setLevel(logging.DEBUG)
+            self.logger.setLevel(logging.INFO)
         
         # if we want a progress bar
         if progress and progressLoaded:
@@ -132,7 +135,7 @@ class mp_master(object):
         
         # create an exception event
         self.exception = mp.Event()
-         
+        
         # start a worker for each cpu available
         print 'creating %d workers' % nprocs
         self.workers = [ worker(self.tasks, self.results, self.exception, pbar=bar) for i in range(nprocs) ]
@@ -164,9 +167,12 @@ class mp_master(object):
                 self.tasks.put(None)
                 
             # wait for all processes to finish
-            for w in self.workers:
-                w.join()
-            
+            # for w in self.workers:
+            #     w.join()
+            while any([w.is_alive() for w in self.workers]):
+                while not self.results.empty():
+                    self.deqd_results.append(self.results.get())
+                
             # if exception, raise
             if self.exception.is_set():
                 raise
