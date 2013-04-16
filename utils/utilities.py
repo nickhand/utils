@@ -29,11 +29,18 @@ def update_dict(d, value, keysToUpdate):
                 updated = False
                 x = newDict
                 index = 0
-                while fields[-1] not in x.keys():
+                if fields[-1].isdigit():
+                    key = fields[-2]
+                else:
+                    key = fields[-1]
+                while key not in x.keys():
                     x = x[fields[index]]
                     index += 1
             
-                x[fields[-1]] = v %value     
+                if fields[-1].isdigit():
+                    x[key][int(fields[-1])] = v %value
+                else:
+                    x[key] = v %value     
                 
             else:
                 raise KeyError
