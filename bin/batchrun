@@ -52,7 +52,7 @@ def batchrun(p, args):
         for cnt in range(njobs):
             
             i = [x[0][cnt] for x in p['update']] # this is a list of values to update to
-            j = [x[1] for x in p['update']]
+            j = [x[1] for x in p['update']] # the corresponding values
             master.enqueue(mputils.task(taskFunc, params, i, j, p['className'], p['runFunc'], num=cnt ))
     
         # start the work and wait until it finishes
@@ -60,8 +60,10 @@ def batchrun(p, args):
     else:
         
         try:
-            for cnt, i  in enumerate(p['valsToUpdate']):
-                taskFunc(params, i, p['paramsToUpdate'], p['className'], p['runFunc'])
+            for cnt in range(njobs):
+                i = [x[0][cnt] for x in p['update']] # this is a list of values to update to
+                j = [x[1] for x in p['update']] # the corresponding values
+                taskFunc(params, i, j, p['className'], p['runFunc'])
         except:
             raise
         
