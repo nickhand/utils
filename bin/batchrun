@@ -22,7 +22,10 @@ def taskFunc(params, valToUpdate, paramsToUpdate, className, runName):
     runFunc = getattr(classFunc, runName)
     
     # update the parameter dictionary
-    newParams = utilities.update_dict(params, valToUpdate, paramsToUpdate)
+    newParams = utilities.update_dict(params, valToUpdate[0], paramsToUpdate[0])
+    if len(valToUpdate) > 1:
+        for i in range(1, len(valToUpdate)):
+            newParams = utilities.update_dict(newParams, valToUpdate[i], paramsToUpdate[i])
         
     # instantiate the class
     c = classFunc(newParams)
@@ -38,14 +41,19 @@ def batchrun(p, args):
     params = flipperDict.flipperDict()
     params.readFromFile(p['paramFile'])    
     
+    
+    njobs = len(params['update'][0])
     if args.np > 1:
     
         # initialize the multiprocessing master with nprocs
-        master = mputils.mp_master(args.np, len(p['valsToUpdate']), progress=not args.nopbar, log=not args.show)
+        master = mputils.mp_master(args.np, njobs, progress=not args.nopbar, log=not args.show)
 
         # enqueue the tasks
-        for cnt, i  in enumerate(p['valsToUpdate']):
-            master.enqueue(mputils.task(taskFunc, params, i, p['paramsToUpdate'], p['className'], p['runFunc'], num=cnt ))
+        for cnt in range(njobs):
+            
+            i = [x[0][cnt] for x in params['update']] # this is a list of values to update to
+            j = [x[1] for x in params['update']]
+            master.enqueue(mputils.task(taskFunc, params, i, j, p['className'], p['runFunc'], num=cnt ))
     
         # start the work and wait until it finishes
         master.run()
