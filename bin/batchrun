@@ -42,7 +42,8 @@ def batchrun(p, args):
     params.readFromFile(p['paramFile'])    
     
     
-    njobs = len(params['update'][0])
+    print params['update'][0][0]
+    njobs = len(params['update'][0][0])
     if args.np > 1:
     
         # initialize the multiprocessing master with nprocs
