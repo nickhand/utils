@@ -42,8 +42,7 @@ def batchrun(p, args):
     params.readFromFile(p['paramFile'])    
     
     
-    print params['update'][0][0]
-    njobs = len(params['update'][0][0])
+    njobs = len(p['update'][0][0])
     if args.np > 1:
     
         # initialize the multiprocessing master with nprocs
@@ -52,8 +51,8 @@ def batchrun(p, args):
         # enqueue the tasks
         for cnt in range(njobs):
             
-            i = [x[0][cnt] for x in params['update']] # this is a list of values to update to
-            j = [x[1] for x in params['update']]
+            i = [x[0][cnt] for x in p['update']] # this is a list of values to update to
+            j = [x[1] for x in p['update']]
             master.enqueue(mputils.task(taskFunc, params, i, j, p['className'], p['runFunc'], num=cnt ))
     
         # start the work and wait until it finishes
