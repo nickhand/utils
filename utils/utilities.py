@@ -410,7 +410,7 @@ def smooth(x, window_len=10, window='hanning'):
         return x
 
     if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
-        raise ValueError, "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
+        raise ValueError, "Window is one of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
 
     s=np.r_[2*x[0]-x[window_len:1:-1], x, 2*x[-1]-x[-1:-window_len:-1]]
     #print(len(s))
@@ -467,3 +467,17 @@ def chunks(l, n):
     out.append(l[n*newn-newn:])
     
     return out
+    
+def latex_float(f):
+    """
+    @brief format a floating point number into a raw latex string
+    """
+    float_str = "{0:.2g}".format(f)
+    if "e" in float_str:
+        base, exponent = float_str.split("e")
+        return r"{0} \ \times \ 10^{{{1}}}".format(base, int(exponent))
+    else:
+        return float_str
+        
+
+
