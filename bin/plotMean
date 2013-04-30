@@ -1,0 +1,115 @@
+#!/usr/bin/env python
+import numpy as np
+import argparse
+from glob import glob
+import pylab as plt
+from catIO import catalog
+from utils.utilities import weighted_mean_arrays as wma
+
+def plotMean(args):
+    
+    nPatterns = len(args.patterns)
+    
+    # loop over all patterns
+    for i, pattern in enumerate(args.patterns):
+        
+        # get the files corresponding to the pattern
+        files = glob(pattern)
+        
+        xvar_tot = []
+        yvar_tot = []
+        yerr_tot = []
+        
+        # read in the data
+        for f in files:
+            if args.x_name.isdigit():
+                xvar, yvar, yerr = np.loadtxt(f, usecols=(int(args.x_name), int(args.y_name), int(args.yerr_name)), unpack=True)
+            else:
+                cat = catalog.catalog(catFile=f)
+                xvar = cat.arrayFromCol(args.x_name)
+                yvar = cat.arrayFromCol(args.y_name)
+                yerr = cat.arrayFromCol(args.yerr_name)
+                
+            xvar_tot.append(xvar)
+            yvar_tot.append(yvar)
+            yerr_tot.append(yerr)
+          
+        if len(files) > 1:
+            y_mean, yerr_mean = wma(yvar_tot, yerr_tot)
+            x_mean = np.mean(xvar_tot, axis=0)
+        else:
+            x_mean, y_mean, yerr_mean = xvar_tot[0], yvar_tot[0], yerr_tot[0]
+        
+        if args.labels is not None:
+            lines, caps, bars = plt.errorbar(x_mean, y_mean, yerr_mean, alpha=args.alpha, lw=args.lw,
+                            elinewidth=args.lw, label=args.labels[i], linestyle='', marker='+')
+        else:
+            lines, caps, bars = plt.errorbar(x_mean, y_mean, yerr_mean, alpha=args.alpha, lw=args.lw,
+                            elinewidth=args.lw, linestyle='', marker='+')
+        for c in caps:
+            c.set_alpha(args.alpha)
+        for b in bars:
+            b.set_alpha(args.alpha)
+        
+    # make the legend and axis labels
+    if args.labels is not None:
+        plt.legend(loc=args.legend_loc, numpoints=1)
+    
+    if args.xlabel is not None:
+        if args.raw:
+            lab = eval("r'"+args.xlabel+"'")
+            plt.xlabel(lab, fontsize=args.fs)
+        else:
+            plt.xlabel(args.xlabel, fontsize=args.fs)
+            
+    if args.ylabel is not None:
+        if args.raw:
+            lab = eval("r'"+args.ylabel+"'")
+            plt.ylabel(lab, fontsize=args.fs)
+        else:
+            plt.ylabel(args.ylabel, fontsize=args.fs)
+     
+    if args.ylog:
+        plt.gca().set_yscale('log')
+    if args.xlog:
+        plt.gca().set_xscale('log')   
+    if args.title is not None:
+        plt.gca().set_title(args.title)
+        
+    if args.xlim is not None:
+        plt.gca().set_xlim(*args.xlim)
+    if args.ylim is not None:
+        plt.gca().set_ylim(*args.ylim)
+    
+    plt.show()
+    
+    return
+
+if __name__ == "__main__":
+    
+    parser = argparse.ArgumentParser(description="plot mean results")
+    parser.add_argument("patterns", type=str, nargs='+', help="the pattern(s) to match files on")
+    
+    parser.add_argument("--x_name", default='0', type=str, help="the name of the x variable to plot")
+    parser.add_argument("--y_name",  default='1', type=str, help="the name of the y variable to plot")
+    parser.add_argument("--yerr_name", default='2', type=str, help="the name of the error on the y variable")
+    
+    parser.add_argument("--labels", type=str, nargs='*', help="line labels if we are plotting more than one mean")
+    parser.add_argument("--title", type=str, help="the title to add to the plot")
+    parser.add_argument("--legend_loc", type=str, default="upper right", help='the location of the legend')
+    parser.add_argument('--xlabel', type=str, help='the label of the x axis')
+    parser.add_argument('--ylabel', type=str, help='the label of the y axis')
+    parser.add_argument('--fs', type=float, default=16, help='the fontsize of the axes labels')
+    parser.add_argument('--alpha', type=float, default=0.6, help='the transparency of the lines')
+    parser.add_argument('--lw', type=float, default=2, help='the width of the lines')
+    
+    parser.add_argument('--xlim', type=float, nargs=2, help='the limits of the x axis')
+    parser.add_argument('--ylim', type=float, nargs=2, help='the limits of the y axis')
+    parser.add_argument('--raw', action='store_true', default=False, help='are the axes labels raw input string')
+    parser.add_argument('--xlog', action='store_true', default=False, help='make the x axis log')
+    parser.add_argument('--ylog', action='store_true', default=False, help='make the y axis log')
+    
+    
+    args = parser.parse_args()
+
+    plotMean(args)
