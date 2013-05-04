@@ -21,8 +21,11 @@ def update_dict(d, value, keysToUpdate):
     # update each key-value pair
     for k, v in keysToUpdate.iteritems():
         
+        cnt = v.count("%s")
+        replace = (value,)*cnt
+        
         if k in newDict.keys():
-            newDict[k] = v %value    
+            newDict[k] = v %replace    
         else:
             if '/' in k:
                 fields = k.split('/')
@@ -38,9 +41,9 @@ def update_dict(d, value, keysToUpdate):
                     index += 1
             
                 if fields[-1].isdigit():
-                    x[key][int(fields[-1])] = v %value
+                    x[key][int(fields[-1])] = v %replace
                 else:
-                    x[key] = v %value     
+                    x[key] = v %replace     
                 
             else:
                 raise KeyError
