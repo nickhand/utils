@@ -1,6 +1,6 @@
 """
  decorators.py
- useful function decorators
+ useful function decorators and context functions
  
  author: Nick Hand
  contact: nhand@berkeley.edu
