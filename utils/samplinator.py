@@ -1,8 +1,9 @@
 """
- class_samplinator.py
+ samplinator.py
  class that provides sampling and B-spline fitting of methods
  
- author: Nick Hand
+ original author: Jake vanderPlas
+ editing author: Nick Hand
  contact: nhand@berkeley.edu
  creation date: 05/01/2013
 """
