@@ -12,18 +12,6 @@ import os
 import string
 import re
 
-def ask_for(key):
-    """
-    @brief ask for the input key/value
-    """
-    s = raw_input("param_dict: enter value for '%s': " %key)
-    try:
-        val = eval(s)
-    except NameError:
-        # allow people to enter unquoted strings
-        val = s
-    return val
-
 class param_dict( object ):
     """
     @brief param_dict is a borg class.  Any instance points to the
@@ -35,56 +23,58 @@ class param_dict( object ):
     # create a shared parameter dictionary
     __shared_state = {}
     
-    def __init__(self,ask=False):
+    def __init__(self):
         self.__dict__ = self.__shared_state
-        self.ask = ask
 
     def __getitem__(self,item):
         if item not in self.keys():
-            if self.ask:
-                print "param_dict: parameter '%s' not found" %item
-                val = ask_for(key)
-                print "param_dict: setting '%s' = %s" % (item,repr(val))
-                setattr(self,item,val)
-            else:
-                return None
+            return None
         return getattr(self,item)
 
     def __setitem__(self,item,val):
         return setattr(self,item,val)
 
-    def update_param_dict(self,D):
-        self.__dict__.update(D)
+    def update_param_dict(self, D):
+        self.__dict__.update(dict(D))
 
     def clear_param_dict(self):
         keys = self.__dict__.keys()
-        x = self.ask
         for k in keys: del self.__dict__[k]
-        self.ask = x
 
     def get_keys(self):
         return self.__dict__.keys()
     keys = get_keys
     
-    def dump(self):
+    def dump(self, return_str=False):
         """
         @brief print all parameters and types
         """
-        print "parameters"
+        s = "parameters\n"
 
         lines = [ (p,str(v),type(v).__name__) \
                       for p,v in self.__dict__.iteritems() ]
 
         if len(lines)==0:
-            print ' [no parameters]'
+            s = ' [no parameters]'
 
         else:
             L0 = max([len(l[0]) for l in lines])
             L1 = max([len(l[1]) for l in lines])
 
             for p,v,t in lines:
-                print ' %s %s %s' % (p.ljust(L0),v.ljust(L1),t)
+                s += ' %s %s %s\n' % (p.ljust(L0),v.ljust(L1),t)
                 
+        if return_str: 
+            return s
+        else:
+            print s
+                
+    def __str__(self):
+        return self.dump(return_str=True)
+        
+    def __iter__(self):
+        return self.__dict__.__iter__()
+    
     def load(self, filename, clear_current=False):
         """
         @brief Fill the package variable params with the parameters specified
@@ -153,7 +143,11 @@ class param_dict( object ):
         
     def unify(self, D):
         self.clear_param_dict()
-        self.update_param_dict(D.__dict__)
+        self.update_param_dict(D)
+    
+    def pop(self, key, *args):
+        self.__dict__.pop(key, *args)
+    
     update = update_param_dict    
     
         
