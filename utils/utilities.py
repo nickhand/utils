@@ -482,5 +482,15 @@ def latex_float(f):
     else:
         return float_str
         
+def flatten(l):
+    """
+    A generator to flatten a list of irregular lists
+    """
+    for el in l:
+        if isinstance(el, collections.Iterable) and not isinstance(el, basestring):
+            for sub in flatten(el):
+                yield sub
+        else:
+            yield el
 
 
