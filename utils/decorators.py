@@ -8,12 +8,13 @@
 """
 import numpy
 from contextlib import contextmanager
+from functools import wraps
 
 @contextmanager
 def ignored(*exceptions):
     """
-    @brief return a context manager that ignores the specified expections if they
-           occur in the body of a with-statement.
+    Return a context manager that ignores the specified expections if they
+    occur in the body of a with-statement.
     
     For example::
     from contextlib import ignored
@@ -37,12 +38,13 @@ def ignored(*exceptions):
 #-------------------------------------------------------------------------------
 def call_item_by_item(func):
     """
-    @brief Decorator for a function such that an array passed to
+    Decorator for a function such that an array passed to
     it will be executed item by item.  Return value is the
     same type as the input value (list,ndarray,matrix,etc).
 
     also up-casts integers.
     """
+    @wraps(func)
     def new_func(self,val,*args,**kwargs):
         if type(val) in (int,long):
             val = float(val)
@@ -60,12 +62,13 @@ def call_item_by_item(func):
 #-------------------------------------------------------------------------------
 def call_as_array(func):
     """
-    @brief decorator for a function such that an array passed to
+    Decorator for a function such that an array passed to
     it will be executed in one step.  Return value is the
     same type as the input value (float,list,ndarray,matrix,etc).
     
     also up-casts integers.
     """
+    @wraps(func)
     def new_func(self,val,*args,**kwargs):
         if type(val) in (int,long):
             val = float(val)
