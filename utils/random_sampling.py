@@ -1,21 +1,44 @@
+"""
+ random_sampling.py
+ implements random sampling with and without replacement, as described 
+ here: http://stackoverflow.com/questions/2140787/ \
+ select-random-k-elements-from-a-list-whose-elements-have-weights/2149533#2149533
+ 
+ author: Nick Hand
+ contact: nhand@berkeley.edu
+ creation date: 06/11/2013
+"""
 import random
 
 class Node:
-    # Each node in the heap has a weight, value, and total weight
-    # The total weight, self.tw, is self.w plus the weight of any children
+    """
+    A class to implement a node in the heap which as a weight, value and 
+    total weight. The total weight, self.tw, is self.w plus the weight of 
+    any children
+    """
     __slots__ = ['w', 'v', 'tw']
 
     def __init__(self, w, v, tw):
         self.w, self.v, self.tw = w, v, tw
+#endclass Node
 
-
+#-------------------------------------------------------------------------------
 def rws_heap(items):
     """
-    h is the heap. It's like a binary tree that lives in an array
-    It has a Node for each pair in 'items.' h[1] is the root. Each
-    other Node h[i] has a parent at h[i>>1]. Each node has up to 2
-    children, h[i<<1] and h[(i<<1)+1]. To get this nice simple
-    arithmetic, we have to leave h[0] vacant.
+    Initialize a binary heap with dict items. The heap is a binary heap that lives 
+    in an array. It has a Node for each pair in 'items.'  
+    
+    Parameters
+    ----------
+    items : list of tuples
+        The items to store. The tuples should contain the (value, weight)
+        of each item you wish to sample from
+        
+    Notes
+    -----
+    h[1] is the root. Each other Node h[i] has a parent at h[i>>1]. 
+    Each node has up to 2 children, h[i<<1] and h[(i<<1)+1]. To get this nice 
+    simple arithmetic, we have to leave h[0] vacant.
     """
     h = [None]                          # leave h[0] vacant
     for v, w in items:
@@ -25,8 +48,13 @@ def rws_heap(items):
         h[i>>1].tw += h[i].tw           # add h[i]'s total to its parent
 
     return h
+#end rws_heap
 
+#-------------------------------------------------------------------------------
 def rws_heap_pop(h):
+    """
+    Pop an item from the heap
+    """
     gas = h[1].tw * random.random()      # start with a random amount of gas
 
     i = 1                  # start driving at the root
@@ -46,16 +74,42 @@ def rws_heap_pop(h):
         i >>= 1
 
     return v
+#end rws_heap_pop
 
-def random_weighted_sample_no_replacement(items, n):
-    heap = rws_heap(items)            # just make a heap...
+#-------------------------------------------------------------------------------
+def random_weighted_sample_no_replacement(items, N):
+    """
+    Randomly choose N items by the weights associated, with no replacement 
+        
+    Parameters
+    ----------
+    items : list of tuples
+        The items to store. The tuples should contain the (value, weight)
+        of each item you wish to sample from 
+    N : int
+        the number of objects to choose
+    """
+    heap = rws_heap(items)               # just make a heap...
     objs = []
-    for i in range(n):
+    for i in xrange(N):
         objs.append(rws_heap_pop(heap))  # and pop n items off it
 
     return objs
+#end random_weighted_sample_no_replacement
 
-def random_weighted_sample_with_replacement(items, n):
+#-------------------------------------------------------------------------------
+def random_weighted_sample_with_replacement(items, N):
+    """
+    Randomly choose N items by the weights associated, with replacement
+    
+    Parameters
+    ----------
+    items : list of tuples
+        The items to store. Tuples should contain the (value, weight)
+        of each item you wish to sample from 
+    N : int
+        the number of objects to choose
+    """
     total = float(sum(w for v, w in items))
     i = 0
     v, w = items[0]
@@ -73,32 +127,7 @@ def random_weighted_sample_with_replacement(items, n):
         n -= 1
 
     return objs
-    
-def weighted_choice(weights):
-    totals = []
-    running_total = 0
+#end random_weighted_sample_with_replacement
 
-    for w in weights:
-        running_total += w
-        totals.append(running_total)
+#-------------------------------------------------------------------------------    
 
-    rnd = random.random() * running_total
-    for i, total in enumerate(totals):
-        if rnd < total:
-            return i
-            
-class WeightedRandomGenerator(object):
-    def __init__(self, weights):
-        self.totals = []
-        running_total = 0
-
-        for w in weights:
-            running_total += w
-            self.totals.append(running_total)
-
-    def next(self):
-        rnd = random.random() * self.totals[-1]
-        return bisect.bisect_right(self.totals, rnd)
-
-    def __call__(self):
-        return self.next()
