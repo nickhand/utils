@@ -114,9 +114,9 @@ def random_weighted_sample_with_replacement(items, N):
     i = 0
     v, w = items[0]
     objs = []
-    while n:
+    while N:
         
-        x = total * (1 - random.random() ** (1.0 / n))
+        x = total * (1 - random.random() ** (1.0 / N))
         total -= x
         while x > w:
             x -= w
@@ -124,7 +124,7 @@ def random_weighted_sample_with_replacement(items, N):
             v, w = items[i]
         w -= x
         objs.append(v)
-        n -= 1
+        N -= 1
 
     return objs
 #end random_weighted_sample_with_replacement
