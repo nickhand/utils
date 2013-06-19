@@ -27,22 +27,22 @@ nano  = 1e-9
 pico  = 1e-12
 
 # fundamental constants
-h_planck = 6.62606957e-27    # planck constant
-h_bar    = h_planck/(2.*pi) # reduced planck constant
-c_light  = 2.99792458e10    # speed of light
-k_b      = 1.3806488e-16    # Boltzmann constant
-m_p      = 1.672621777e-24   # proton mass
-m_e      = 9.10938291e-28   # electron mass
+h_planck = 6.62606957e-27     # planck constant
+h_bar    = h_planck/(2.*pi)   # reduced planck constant
+c_light  = 2.99792458e10      # speed of light
+k_b      = 1.3806488e-16      # Boltzmann constant
+m_p      = 1.672621777e-24    # proton mass
+m_e      = 9.10938291e-28     # electron mass
 q_e      = 4.80320425e-10     # e.s.u.
-G        = 6.67384e-8        # Newton's constant
-eV       = 1.60217657e-12   # ergs
-N_a      = 6.02214129e23        # Avogadro's constant
+G        = 6.67384e-8         # Newton's constant
+eV       = 1.60217657e-12     # ergs
+N_a      = 6.02214129e23      # Avogadro's constant
 sigma_sb = 5.670373e-5        # Stefan-Boltzmann constant
-a_rad    = 4*sigma_sb/c_light       # radiation constant
-sigma_T  = 6.652458734e-25       # Thomson cross section
-T_cmb    = 2.72528          # temperature of the CMB
-H_0      = 100.0            # in units of h km/s/Mpc
-a_0      = 5.2917721092e-9         # Bohr radius
+a_rad    = 4*sigma_sb/c_light # radiation constant
+sigma_T  = 6.652458734e-25    # Thomson cross section
+T_cmb    = 2.72528            # temperature of the CMB
+H_0      = 100.0              # in units of h km/s/Mpc
+a_0      = 5.2917721092e-9    # Bohr radius
 
 # length conversion factors
 km       = 1.0e+5 * cm  
@@ -63,12 +63,12 @@ rydberg         = 10973731.568539 * meter**(-1.) * h_planck*c_light
 au         = 149597870700*meter      # the astronomical unit
 degree    = pi/180.
 arcminute = degree/60.
-arcsecond = arcminute/60.               # radians
-parsec     = au / arcsecond                    # cm
-minute     = 60.                            # seconds
-hour       = 60. * 60.                      # seconds
-day        = 8.64e4                         # seconds
-year       = 365.2425 * day                 # seconds
+arcsecond = arcminute/60.            # radians
+parsec     = au / arcsecond          # cm
+minute     = 60.                     # seconds
+hour       = 60. * 60.               # seconds
+day        = 8.64e4                  # seconds
+year       = 365.2425 * day          # seconds
 Mpc        = mega*parsec
                                                                     
 L_sun = 3.826e33              # erg/s
