@@ -1,7 +1,7 @@
 import numpy as np
 import progressbar as pb
 from scipy.special import gammaincc
-from scipy.optimize import bisect
+from scipy.optimize import bisect, fmin
 from scipy.integrate import quad
 import pylab
 from catIO import catalog
@@ -10,13 +10,73 @@ import sys
 import itertools
 import operator
 
+def compute_covariance_matrix(X):
+    """
+    Compute the covariance matrix of the data given by X
+    
+    Parameters
+    ----------
+    X : numpy.ndarray, shape (N, N_bins)
+        the data array
+    
+    Returns
+    -------
+    covar : numpy.ndarray, shape (N_bins, N_bins)
+        the covariance matrix
+    """
+    
+    N, N_bins = X.shapes
+    
+    # first guess at the covariance components
+    N_comps = sum(i for i in range(N_bins+1))
+    C_comps =  np.zeros(N_comps)
+    cnt = 0
+    for i in range(N_bins):
+        for j in range(i, N_bins):
+            col1 = stats[:, i]
+            col2 = stats[:, j]
+            C_comps[cnt] = np.mean(col1*col2)-np.mean(col1)*np.mean(col2)
+            cnt += 1 
+    
+    C = np.zeros((N_bins, N_bins))
+    def objective(comps):
+        ans = 0
+    
+        C[np.triu_indices(nBins)] = comps
+        C[np.tril_indices(nBins, k=-1)] = C[np.triu_indices(nBins, k=1)]
+        L = np.linalg.cholesky(C)
+        detterm = 2.*np.log(np.linalg.det(L))
+        invC = np.dot(np.linalg.inv(L.T), np.linalg.inv(L))
 
+        for x in stats:
+            ans += detterm + np.dot(x.T, np.dot(invC, x))
+        return ans
+
+    # get the final components and compute the covariance matrix to return
+    comps_final = fmin(objective, C_comps)
+    covar = np.zeros((N_bins, N_bins))
+    covar[np.triu_indices(N_bins)] = comps_final
+    covar[np.tril_indices(N_bins, k=-1)] = covar[np.triu_indices(N_bins, k=1)]
+    
+    return covar
+#end compute_covariance_matrix
+
+#-------------------------------------------------------------------------------
 def update_dict(d, value, keysToUpdate):
     """
-    @brief update keys in a dictionary by strip replacing a value in the input dictionary
-    """ 
+    Update keys in a dictionary by string replacing a value in the input dictionary
     
-    newDict = d.copy() # don't overwrite the input copy
+    Parameters
+    ----------
+    d : dict
+        the dictionary to update
+    value : int, str
+        the value to insert into the dict
+    keysToUpdate : dict
+        dictionary with (k, v) where k is a key in d and v is the format
+        string that value will be inserted into
+    """ 
+    newDict = d.copy()
     
     # update each key-value pair
     for k, v in keysToUpdate.iteritems():
@@ -49,24 +109,41 @@ def update_dict(d, value, keysToUpdate):
                 raise KeyError
         
     return newDict
+#end update_dict
 
+#-------------------------------------------------------------------------------
 def bin(arrayX, arrayY, nBins, log = False, Nconst=False, norm=None, operator=np.mean):
     """
-    @brief bin the inumpyut arrays using the given operator
-    @param arrayX x input array
-    @param arrayY y input array to be binned
-    @param nBins number of bins to use
-    @param log boolean denoting whether to use even bins in logspace
-    @param Nconst boolean denoting whether to have fixed number of points per bin
-    @param norm possible weights array to normalize binning by
-    @param operator the operator to use when binning
+    Bin the input arrays using the given operator
     
-    @return X binned X array
-    @return Y binned Y array
-    @return Ystd 1sigma errors on each Y bin
-    @return weights number of points in each bin
+    Parameters
+    ----------
+    arrayX : numpy.ndarray
+        the x input array
+    arrayY : numpy.ndarray 
+        the input array to be binned
+    nBins : int
+        number of bins to use
+    log : bool, optional 
+        whether to use even bins in logspace or realspace
+    Nconst : bool, optional
+        whether to have fixed number of points per bin
+    norm : numpy.ndarray
+        a possible weights array to normalize binning by
+    operator : function 
+        the operator to use when binning
+    
+    Returns
+    -------
+    X : numpy.ndarray
+        the binned X array
+    Y : numpy.ndarray 
+        the binned Y array
+    Ystd : numpy.ndarray
+        the 1-sigma errors on the value in each bin
+    weights : numpy.ndarray
+        the number of points in each bin
     """
-    
     # convert to arrays
     arrayX = np.array(arrayX)
     arrayY = np.array(arrayY)
@@ -75,21 +152,17 @@ def bin(arrayX, arrayY, nBins, log = False, Nconst=False, norm=None, operator=np
         
         # define min and max distance and number of bins
         Nwidth = int(len(arrayY) / nBins)
-        
     
         # initialize lists for later use 
         X = []          
         Y = []       
         Ystd = []
         weights = []     
-        
 
         # sort arrays
         index = np.argsort(arrayX)
         arrayY = arrayY[index]
         arrayX = np.sort(arrayX)
-        
-    
 
         # create bins and calculate list values
         for i in range(0, nBins):
@@ -107,16 +180,13 @@ def bin(arrayX, arrayY, nBins, log = False, Nconst=False, norm=None, operator=np
                 Y.append(np.sum(y)/np.sum(w))
                 
             weights.append(len(x))
-            
             Ystd.append(np.std(y))
 
-    
         # converts lists to arrays
         X = np.array(X)
         Y = np.array(Y)
         Ystd = np.array(Ystd)
         weights = np.array(weights)
-
         
         return X, Y, Ystd, weights
 
@@ -136,12 +206,10 @@ def bin(arrayX, arrayY, nBins, log = False, Nconst=False, norm=None, operator=np
         Ystd = []
         weights = []     
         
-
         # sort arrays
         index = np.argsort(arrayX)
         arrayY = arrayY[index]
         arrayX = np.sort(arrayX)
-
     
         # create bins and calculate list values
         for i in range(0, nBins):
@@ -173,7 +241,6 @@ def bin(arrayX, arrayY, nBins, log = False, Nconst=False, norm=None, operator=np
             weights.append(len(x))
             Ystd.append(np.std(y))
 
-    
         # converts lists to arrays
         X = np.array(X)
         Y = np.array(Y)
@@ -182,13 +249,22 @@ def bin(arrayX, arrayY, nBins, log = False, Nconst=False, norm=None, operator=np
 
         
         return X, Y, Ystd, weights
+#end bin
 
+#-------------------------------------------------------------------------------
 def extrap1d(interpolator):
     """
-    @brief 1d extrapolator function, using linear extrapolation
-    @param interpolator the interpolator function (ie, from scipy.interp1d)
+    A 1d extrapolator function, using linear extrapolation
     
-    @return ufunclike the extrapolator function
+    Parameters
+    ----------
+    interpolator : scipy.interpolate.interp1d 
+        the interpolator function
+    
+    Returns
+    -------
+    ufunclike : function
+        the extrapolator function
     """
     xs = interpolator.x
     ys = interpolator.y
@@ -205,17 +281,27 @@ def extrap1d(interpolator):
         return np.array(map(pointwise, np.array(xs)))
 
     return ufunclike
+#end extrap1d
 
-                                                                            
-    
+#-------------------------------------------------------------------------------                                                               
 def getSigmaFromChiSquared(chi_sq, dof):
     """
-    @brief compute the significance (in sigma) of a chi squared value
-           and degrees of freedom (from Numerical Recipes)
-    @param chi_sq the chi squared value
-    @param dof the degrees of freedom
+    Compute the significance (in sigma) of a chi squared value and degrees 
+    of freedom (from Numerical Recipes)
     
-    @return the significance in sigma
+    Parameters
+    ----------
+    chi_sq : float 
+        the chi squared value
+    dof : int 
+        the degrees of freedom
+    
+    Returns
+    -------
+    sigma : float
+        the significance in sigma
+    prob : float
+        the probability that random variates have this chi-squared
     """
     def func1(x):
         return x - 1.0 + gammaincc(dof/2.0, chi_sq/2.0)
@@ -234,29 +320,37 @@ def getSigmaFromChiSquared(chi_sq, dof):
 
     # 1 - p is probability that random variates could have this chi-squared value
     return sigma, 1-p
+#end getSigmaFromChiSquared
     
+#-------------------------------------------------------------------------------
 def getSigmaFromPValue(p_value):
     """
-    @brief compute the significance (in sigma) of a given p-value
-    @param p_value: 1 - p_value is prob that random variates could have a given chi squared
+    Compute the significance (in sigma) of a given p-value
+    
+    Parameters
+    ----------
+    p_value : float 
+        1 - p_value is prob that random variates could have a given chi squared
 
-    @return the significance in sigma
+    Returns
+    -------
+    sigma : float
+        the significance in sigma
     """
-
     def func(x):
-
         val = quad(lambda y: 1.0/np.sqrt(2.0*np.pi)*np.exp(-y**2/2.0), -x, x)
-
         return val[0] - p_value
 
     # now calculate sigma
     sigma = bisect(func, 0, 100)
 
     return sigma
+#end getSigmaFromPValue
 
+#-------------------------------------------------------------------------------
 def paper_single():
     """
-    @brief initialize parameters for a single column pylab plot
+    Initialize parameters for a single column pylab plot
     """
     
     pylab.rc('figure', figsize=(3.375,3.375))
@@ -267,12 +361,12 @@ def paper_single():
     pylab.rc('ytick', labelsize='small')
     pylab.rc('legend', fontsize='medium') 
     pylab.rc('axes', linewidth=1.5)
+#end paper_single
     
-    return
-    
+#-------------------------------------------------------------------------------
 def getIDFromRADec(ra, dec, tag):
     """
-    @brief compute the ID in IAU format from ra, dec in decimal format
+    Compute the ID in IAU format from ra, dec in decimal format
     """
     ra_s, dec_s = catalog.convertRADecDegreesToSexagesimal(ra, dec)
     tup = ra_s + dec_s
@@ -283,17 +377,32 @@ def getIDFromRADec(ra, dec, tag):
         iau_name = tag+"_J%02d%02d%05.2f+%02i%02d%05.1f" %tup
 
     return iau_name
-        
+#end getIDFromRADec
+
+#-------------------------------------------------------------------------------        
 def initializeProgressBar(N, fd=sys.stderr):
     """
-    @brief initialize a progress bar with N total ticks
+    Initialize a progress bar with N total ticks
     """
-    bar = pb.ProgressBar(maxval=N, fd=fd, term_width = 100, widgets=[pb.Bar('=', '[', ']'), ' ', pb.Percentage()])
-    return bar
+    return pb.ProgressBar(maxval=N, fd=fd, term_width=100, 
+                         widgets=[pb.Bar('=', '[', ']'), ' ', pb.Percentage()])
+#end initializeProgressBar
     
+#-------------------------------------------------------------------------------
 def getDuplicatesFromList(L):
     """
-    @brief return the duplicate objects and indices of those objects from list L
+    Return the duplicate objects and indices of those objects from list L
+
+    Parameters
+    ----------
+    L : list
+        the list to find duplicates in
+        
+    Returns
+    -------
+    out : dict
+        the dictionary with keys that are the duplicate items and values that
+        are the list of indices of those items in L
     """
     dups = collections.defaultdict(list)
     for i, e in enumerate(L):
@@ -305,13 +414,17 @@ def getDuplicatesFromList(L):
             out[k] = v
     
     return out
+#end getDuplicatesFromList
     
+#-------------------------------------------------------------------------------
 def stringToFunction(astr):
     """
-    @brief given a string containing the name of a function, convert 
-    it to a function
-
-    @param astr: string of function name
+    Given a string containing the name of a function, convert it to a function
+    
+    Parameters
+    ----------
+    astr : str 
+        the string to convert to a function name
     """
     module, _, function = astr.rpartition('.')
     if module:
@@ -321,17 +434,33 @@ def stringToFunction(astr):
         mod = sys.modules['__main__']
 
     return getattr(mod, function)
+#end stringToFunction
     
+#-------------------------------------------------------------------------------
 def runge_kutta_4th(x, y, z, a , dx):
     """
-    @brief a fourth order Runge-Kutta ODE solver
-    @param x: the independent variable (float)
-    @param y: the initial dependent variable at x (float)
-    @param z: the first derivative dy/dx (float)
-    @param a: the acceleration function of y, d2y/dx2, a(x, y, z) (function)
-    @param dx: the interval step in x (float)
+    A fourth order Runge-Kutta ODE solver
+    
+    Parameters
+    ----------
+    x : float 
+        the independent variable
+    y : float
+        the initial dependent variable at x
+    z : the first derivative dy/dx
+        float
+    a : function
+        the acceleration function of y, d2y/dx2, a(x, y, z)
+    dx : float 
+        the interval step in x
+    
+    Returns
+    -------
+    yf : float
+        the updated value of y at x + dx
+    zf : float
+        the updated value of z at x + dx
     """
-
     x1 = x
     y1 = y
     z1 = z
@@ -357,10 +486,12 @@ def runge_kutta_4th(x, y, z, a , dx):
     xf = z + dx
 
     return yf, zf
+#end runge_kutta_4th
     
+#-------------------------------------------------------------------------------
 def weighted_mean_arrays(vals, errs):
     """
-    @brief read in a list of lists and errors and compute the mean
+    Read in lists of lists giving values and errors and compute weighted mean
     """
     vals = np.asarray(vals)
     errs = np.asarray(errs)
@@ -369,10 +500,12 @@ def weighted_mean_arrays(vals, errs):
     mean_errs = np.sum(1./errs**2, axis=0)**(-0.5)
     
     return mean_vals, mean_errs
-    
+#end weighted_mean_arrays
+
+#-------------------------------------------------------------------------------    
 def smooth(x, window_len=10, window='hanning'):
     """
-    @brief smooth the data using a window with requested size.
+    Smooth the data using a window with requested size.
 
     This method is based on the convolution of a scaled window with the signal.
     The signal is prepared by introducing reflected copies of the signal 
@@ -424,10 +557,12 @@ def smooth(x, window_len=10, window='hanning'):
         w = getattr(np, window)(window_len)
     y = np.convolve(w/w.sum(), s, mode='same')
     return y[window_len-1:-window_len+1]
+#end smooth
 
+#-------------------------------------------------------------------------------
 def gauss_kern(size, sizey=None):
     """ 
-    @brief returns a normalized 2D gauss kernel array for convolutions 
+    Returns a normalized 2D gauss kernel array for convolutions 
     """
     size = int(size)
     if not sizey:
@@ -438,29 +573,36 @@ def gauss_kern(size, sizey=None):
     g = np.exp(-(x**2/float(size) + y**2/float(sizey)))
     return g / g.sum()
 
+#end gauss_kern
+
+#-------------------------------------------------------------------------------
 def blur_image(im, n, ny=None) :
     """ 
-    @brief blurs the image by convolving with a gaussian kernel of typical
+    Blurs the image by convolving with a gaussian kernel of typical
     size n. The optional keyword argument ny allows for a different
     size in the y direction.
     """
     g = gauss_kern(n, sizey=ny)
     improc = signal.convolve(im, g, mode='valid')
     return(improc)
-    
+#end blur_image
+
+#-------------------------------------------------------------------------------
 def get_consecutive_ints(array):
     """
-    @brief break the input array into arrays of consecutive integers
+    Break the input array into arrays of consecutive integers
     """
     output = []
     for k, g in itertools.groupby(enumerate(array), lambda (i,x):i-x):
         output.append(map(operator.itemgetter(1), g))
         
     return np.array(output)
+#end get_consecutive_ints
     
+#-------------------------------------------------------------------------------
 def chunks(l, n):
     """ 
-    @brief yield n successive chunks from l.
+    Return n successive chunks from l.
     """
     out = []
     newn = int(len(l) / n)
@@ -470,10 +612,12 @@ def chunks(l, n):
     out.append(l[n*newn-newn:])
     
     return out
+#end chunks
     
+#-------------------------------------------------------------------------------
 def latex_float(f):
     """
-    @brief format a floating point number into a raw latex string
+    Format a floating point number into a raw latex string
     """
     float_str = "{0:.2g}".format(f)
     if "e" in float_str:
@@ -481,7 +625,9 @@ def latex_float(f):
         return r"{0} \ \times \ 10^{{{1}}}".format(base, int(exponent))
     else:
         return float_str
+#end latex_float
         
+#-------------------------------------------------------------------------------
 def flatten(l):
     """
     A generator to flatten a list of irregular lists
@@ -492,5 +638,6 @@ def flatten(l):
                 yield sub
         else:
             yield el
+#end flatten
 
 
