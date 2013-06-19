@@ -14,12 +14,11 @@ import re
 
 class param_dict( object ):
     """
-    @brief param_dict is a borg class.  Any instance points to the
+    param_dict is a borg class.  Any instance points to the
     common dictionary __shared_state.  Any modification to a single
     param_container instance modifies the state of all 
     param_container instances.
     """
-    
     # create a shared parameter dictionary
     __shared_state = {}
     
@@ -77,7 +76,7 @@ class param_dict( object ):
     
     def load(self, filename, clear_current=False):
         """
-        @brief Fill the package variable params with the parameters specified
+        Fill the package variable params with the parameters specified
         in the filename.
 
         if clear_current is True, then first empty current parameter settings
@@ -153,7 +152,7 @@ class param_dict( object ):
         
 def replace_vars(s,D):
     """
-    @brief given a string s and a dictionary of variables D, replace all variable
+    Given a string s and a dictionary of variables D, replace all variable
     names with the value from the dict D
 
     variable names in s are denoted by '$(' at the beginning and ')' at
