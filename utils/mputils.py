@@ -9,7 +9,7 @@ except:
 
 class worker(mp.Process):
     """
-    @brief worker class that a dequeues a task from an input queue, perform a specified
+    Worker class that a dequeues a task from an input queue, perform a specified
     computation, and store the results until the input queue is empty
     """
     
@@ -30,18 +30,15 @@ class worker(mp.Process):
         else:
             self.pbar = None
 
-
         # handle an exception
         self.exception = except_event
-            
-        return
-
+    #end __init__
+    
+    #---------------------------------------------------------------------------
     def run(self):
         """
-        @brief start the worker class doing the tasks until there
-        are none left
+        Start the worker class doing the tasks until there are none left
         """
-        
         # pull tasks until there are none left and we don't exit
         while not self.exception.is_set():
             
@@ -64,19 +61,19 @@ class worker(mp.Process):
             try:  
                 answer = next_task()
                 self.result_queue.put(answer)
-            # set the exception event so main process knows to exit, and then raise the exception
+            # set the exception event so main process knows to exit, 
+            # and then raise the exception
             except:
                 self.exception.set()
                 raise
-                
-        return 0
-    
+    #end run
+#endclass worker    
+
+#-------------------------------------------------------------------------------
 class task(object):
     """
-    @brief a class representing a 'task' where a specified computation
-    is performed
+    A class representing a 'task' where a specified computation is performed
     """
-    
     def __init__(self, function, *args, **kwargs):
         
         self.func = function
@@ -86,21 +83,17 @@ class task(object):
         
     def __call__(self):
         
-        # call the function with the arguments
-        ans = self.func(*self.args)
-            
-        return ans
+        return self.func(*self.args)
+#endclass task
 
-
-
+#-------------------------------------------------------------------------------
 class mp_master(object):
     """
-    @brief a class to control a multiprocessing job 
+    A class to control a multiprocessing job 
     """
-    
     def __init__(self, nprocs, njobs, progress=True, log=True):
         """
-        @brief initialize the input/output queues and make the workers
+        Initialize the input/output queues and make the workers
         """
         
         # set up the queues
@@ -120,7 +113,8 @@ class mp_master(object):
             timeStamp = time.gmtime(time.time())
             formatString = "%Y-%m-%d-%H-%M-%S"
             timeStamp = time.strftime(formatString, timeStamp)
-            self.stdout = open(os.getcwd() + os.sep + "%s.%s.log" %(fileName, timeStamp), 'w')
+            self.stdout = open(os.getcwd() + os.sep + "%s.%s.log" \
+                                                %(fileName, timeStamp), 'w')
             sys.stdout = self.stdout
         
             # set up the logger to log to sys.stderr
@@ -139,23 +133,21 @@ class mp_master(object):
         # start a worker for each cpu available
         print 'creating %d workers' % nprocs
         self.workers = [ worker(self.tasks, self.results, self.exception, pbar=bar) for i in range(nprocs) ]
-        
-        return
+    #end __init__
     
+    #---------------------------------------------------------------------------
     def enqueue(self, task):
         """
-        @brief enqueue a task onto the tasks queue
+        Enqueue a task onto the tasks queue
         """
-        
         self.tasks.put(task)
+    #end enqueue
         
-        return
-        
+    #---------------------------------------------------------------------------
     def run(self):
         """
-        @brief start the workers and do the work
+        Start the workers and do the work
         """
-        
         # make sure to catch exceptions
         try: 
             # start the work
@@ -180,6 +172,8 @@ class mp_master(object):
             for w in self.workers:
                w.terminate()
                w.join()
+            raise
+             
         finally: 
             
             # append the temp stderr to stdout file
@@ -191,32 +185,32 @@ class mp_master(object):
             
             # summary
             self.info()
-        
-        return
-        
+    #end run
+    
+    #---------------------------------------------------------------------------    
     def dequeue(self):
         """
-        @brief dequeue all the results
+        Dequeue all the results
         """
-        
-        # dequeue any results still on the results queue
         while not self.results.empty():
             self.deqd_results.append(self.results.get())
                 
         return self.deqd_results
+    #end dequeue
 
+    #---------------------------------------------------------------------------
     def more_results(self):
         """
-        @brief return True if there are more results to dequeue
+        Return True if there are more results to dequeue
         """
-        
         return not self.results.empty()
+    #end more_results
     
+    #---------------------------------------------------------------------------
     def info(self):
         """
-        @brief summarize process info
+        Summarize process info
         """
-        
         # print out exit codes
         for w in self.workers:
             sys.stdout.write("exit code for Process '%s' is %s\n" % (w.name, w.exitcode))
@@ -224,7 +218,10 @@ class mp_master(object):
         # print out finish time
         now = datetime.datetime.now()
         sys.stdout.write("job finished at %s\n\n" %str(now))
-        
-        return
+    #end info
+#endclass mp_master
+
+#-------------------------------------------------------------------------------
+
         
     
