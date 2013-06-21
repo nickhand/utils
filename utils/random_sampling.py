@@ -55,6 +55,7 @@ def rws_heap_pop(h):
     """
     Pop an item from the heap
     """
+    
     gas = h[1].tw * random.random()      # start with a random amount of gas
 
     i = 1                  # start driving at the root
@@ -89,6 +90,7 @@ def random_weighted_sample_no_replacement(items, N):
     N : int
         the number of objects to choose
     """
+    random.seed(123456789)
     heap = rws_heap(items)               # just make a heap...
     objs = []
     for i in xrange(N):
