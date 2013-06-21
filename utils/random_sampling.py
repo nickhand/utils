@@ -90,7 +90,6 @@ def random_weighted_sample_no_replacement(items, N):
     N : int
         the number of objects to choose
     """
-    random.seed(123456789)
     heap = rws_heap(items)               # just make a heap...
     objs = []
     for i in xrange(N):
