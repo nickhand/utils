@@ -111,7 +111,6 @@ def update_dict(d, value, keysToUpdate):
             else:
                 raise KeyError
         
-    print newDict
     return newDict
 #end update_dict
 
