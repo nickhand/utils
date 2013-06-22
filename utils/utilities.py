@@ -85,7 +85,8 @@ def update_dict(d, value, keysToUpdate):
         replace = (value,)*cnt
         
         if k in newDict.keys():
-            newDict[k] = v %replace    
+            thistype = type(newDict[k])
+            newDict[k] = thistype(v %replace)
         else:
             if '/' in k:
                 fields = k.split('/')
@@ -101,9 +102,11 @@ def update_dict(d, value, keysToUpdate):
                     index += 1
             
                 if fields[-1].isdigit():
-                    x[key][int(fields[-1])] = v %replace
+                    thistype = type(x[key][int(fields[-1])])
+                    x[key][int(fields[-1])] = thistype(v %replace)
                 else:
-                    x[key] = v %replace     
+                    thistype = type(x[key])
+                    x[key] = thistype(v %replace)
                 
             else:
                 raise KeyError
