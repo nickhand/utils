@@ -18,7 +18,7 @@ def taskFunc(params, valToUpdate, paramsToUpdate, className, runName):
     Update the params
     """
     
-    if classFunc is not None:
+    if className is not None:
         classFunc = utilities.stringToFunction(className)
         runFunc = getattr(classFunc, runName)
     else:
@@ -30,7 +30,7 @@ def taskFunc(params, valToUpdate, paramsToUpdate, className, runName):
         for i in range(1, len(valToUpdate)):
             newParams = utilities.update_dict(newParams, valToUpdate[i], paramsToUpdate[i])
         
-    if classFunc is not None:
+    if className is not None:
         # instantiate the class
         c = classFunc(newParams)
     
