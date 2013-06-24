@@ -15,11 +15,14 @@ import tempfile, datetime
 
 def taskFunc(params, valToUpdate, paramsToUpdate, className, runName):
     """
-    @brief update the params
+    Update the params
     """
     
-    classFunc = utilities.stringToFunction(className)
-    runFunc = getattr(classFunc, runName)
+    if classFunc is not None:
+        classFunc = utilities.stringToFunction(className)
+        runFunc = getattr(classFunc, runName)
+    else:
+        runFunc = utilities.stringToFunction(runName)
     
     # update the parameter dictionary
     newParams = utilities.update_dict(params, valToUpdate[0], paramsToUpdate[0])
@@ -27,21 +30,23 @@ def taskFunc(params, valToUpdate, paramsToUpdate, className, runName):
         for i in range(1, len(valToUpdate)):
             newParams = utilities.update_dict(newParams, valToUpdate[i], paramsToUpdate[i])
         
-    # instantiate the class
-    c = classFunc(newParams)
+    if classFunc is not None:
+        # instantiate the class
+        c = classFunc(newParams)
     
-    # run the method, with class as first argument
-    runFunc(c)
+        # run the method, with class as first argument
+        runFunc(c)
+    else:
+        runFunc(newParams)
+#end taskFunc
     
-    return 
-
+#-------------------------------------------------------------------------------
 def batchrun(p, args):
     
     # read in the parameters we'll need to update
     params = flipperDict.flipperDict()
     params.readFromFile(p['paramFile'])    
-    
-    
+
     njobs = len(p['update'][0][0])
     if args.np > 1:
     
@@ -66,9 +71,8 @@ def batchrun(p, args):
                 taskFunc(params, i, j, p['className'], p['runFunc'])
         except:
             raise
-        
-    return 
-        
+#end batchrun
+#-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
     
