@@ -11,7 +11,7 @@
 import numpy
 from scipy import integrate, interpolate
 
-class with_sampleable_methods:
+class with_sampleable_methods(object):
     """
     Class which allows sampling and B-Spline fitting of class methods
     in derived classes.

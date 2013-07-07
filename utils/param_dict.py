@@ -146,6 +146,9 @@ class param_dict( object ):
     
     def pop(self, key, *args):
         self.__dict__.pop(key, *args)
+        
+    def is_empty(self):
+        return len(self.keys()) == 0
     
     update = update_param_dict    
     

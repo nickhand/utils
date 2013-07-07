@@ -643,4 +643,15 @@ def flatten(l):
             yield el
 #end flatten
 
+#-------------------------------------------------------------------------------
+def format_float(x, str_format, min_val=-3, max_val=3):
+    """
+    Format a float number
+    """
+    logx = np.log10(abs(x))
+    if logx < min_val or logx > max_val:
+        return (str_format+"e") %x
+    else:
+        return (str_format+"f") %x
+
 
