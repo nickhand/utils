@@ -9,6 +9,7 @@
 import numpy
 from contextlib import contextmanager
 from functools import wraps
+import inspect
 
 @contextmanager
 def ignored(*exceptions):
@@ -44,19 +45,35 @@ def call_item_by_item(func):
 
     also up-casts integers.
     """
-    @wraps(func)
-    def new_func(self,val,*args,**kwargs):
-        if type(val) in (int,long):
-            val = float(val)
-        v_array = numpy.asarray(val)
-        v_raveled = v_array.ravel()
-        retval = numpy.array([func(self,v,*args,**kwargs) for v in v_raveled],
-                             dtype = v_array.dtype)
-        retval.resize(v_array.shape)
-        if type(val)==numpy.ndarray:
-            return retval
-        else:
-            return type(val)(retval)
+    ismethod = inspect.getargspec(func).args[0] == 'self'
+    if ismethod:
+        @wraps(func)
+        def new_func(self, val,*args,**kwargs):
+            if type(val) in (int,long):
+                val = float(val)
+            v_array = numpy.asarray(val)
+            v_raveled = v_array.ravel()
+            retval = numpy.array([func(self,v,*args,**kwargs) for v in v_raveled],
+                                 dtype = v_array.dtype)
+            retval.resize(v_array.shape)
+            if type(val)==numpy.ndarray:
+                return retval
+            else:
+                return type(val)(retval)
+    else:
+        @wraps(func)
+        def new_func(val,*args,**kwargs):
+            if type(val) in (int,long):
+                val = float(val)
+            v_array = numpy.asarray(val)
+            v_raveled = v_array.ravel()
+            retval = numpy.array([func(v,*args,**kwargs) for v in v_raveled],
+                                 dtype = v_array.dtype)
+            retval.resize(v_array.shape)
+            if type(val)==numpy.ndarray:
+                return retval
+            else:
+                return type(val)(retval)
     return new_func
 
 #-------------------------------------------------------------------------------
