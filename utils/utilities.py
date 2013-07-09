@@ -12,55 +12,25 @@ import operator
 
 def compute_covariance_matrix(X):
     """
-    Compute the covariance matrix of the data given by X
+    Computes the maximum-likelihood covariance matrix of the data given by X.
+    Simple wrapper of the numpy.cov function. See "Estimation of covariance 
+    matrices" on Wikipedia, or Barlow 1991 for proof.
     
     Parameters
     ----------
     X : numpy.ndarray, shape (N, N_bins)
-        the data array
+        the data array where each column represents a variable and each
+        row represents the observations over all variables
     
     Returns
     -------
     covar : numpy.ndarray, shape (N_bins, N_bins)
         the covariance matrix
     """
-    
-    N, N_bins = X.shapes
-    
-    # first guess at the covariance components
-    N_comps = sum(i for i in range(N_bins+1))
-    C_comps =  np.zeros(N_comps)
-    cnt = 0
-    for i in range(N_bins):
-        for j in range(i, N_bins):
-            col1 = stats[:, i]
-            col2 = stats[:, j]
-            C_comps[cnt] = np.mean(col1*col2)-np.mean(col1)*np.mean(col2)
-            cnt += 1 
-    
-    C = np.zeros((N_bins, N_bins))
-    def objective(comps):
-        ans = 0
-    
-        C[np.triu_indices(nBins)] = comps
-        C[np.tril_indices(nBins, k=-1)] = C[np.triu_indices(nBins, k=1)]
-        L = np.linalg.cholesky(C)
-        detterm = 2.*np.log(np.linalg.det(L))
-        invC = np.dot(np.linalg.inv(L.T), np.linalg.inv(L))
-
-        for x in stats:
-            ans += detterm + np.dot(x.T, np.dot(invC, x))
-        return ans
-
-    # get the final components and compute the covariance matrix to return
-    comps_final = fmin(objective, C_comps)
-    covar = np.zeros((N_bins, N_bins))
-    covar[np.triu_indices(N_bins)] = comps_final
-    covar[np.tril_indices(N_bins, k=-1)] = covar[np.triu_indices(N_bins, k=1)]
-    
-    return covar
+    return np.cov(X, rowvar=0)
 #end compute_covariance_matrix
 
+#-------------------------------------------------------------------------------
 def compute_delta_chisq(data, errs, model):
     """
     Compute the square root of chisq_null - chisq_model
