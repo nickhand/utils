@@ -61,6 +61,56 @@ def compute_covariance_matrix(X):
     return covar
 #end compute_covariance_matrix
 
+def compute_delta_chisq(data, errs, model):
+    """
+    Compute the square root of chisq_null - chisq_model
+    """
+    
+    chisq_null = np.sum( (data/errs)**2 )
+    chisq_model = np.sum( (data-model)**2/errs**2 )
+    
+    return np.sqrt(chisq_null - chisq_model)
+#end compute_delta_chisq
+
+#-------------------------------------------------------------------------------
+def compute_null_significance(data, errs, covar_matrix, N_trials=1e6):
+    """
+    Generate random correlated deviates and compute the significance of the 
+    data away from a null signal. Assuming normal distribution errors, return
+    the p-value and the sigma value
+    """
+    nBins = len(data)
+    
+    # do the cholesky decomposition, so C =  A*A.T.conj()
+    A = np.linalg.cholesky(covar_matrix)
+    
+    # get the chisq of the data
+    model = np.zeros(nBins)
+    chi2_data = np.sum( (data-model)**2/errs**2 )
+    
+    # count number of trials where chi2 > chi2_data
+    N_larger = 0 
+    for i in xrange(int(N_trials)):
+        
+        # generate nBins random gaussian deviates
+        devs_uncorrelated = np.random.normal(size=len(errs))
+    
+        # use correlation matrix to get correlated deviates
+        devs_correlated = np.dot(A, devs_uncorrelated)
+        
+        chi2 = np.sum( (devs_correlated/errs)**2 )
+	
+        if (chi2 > chi2_data): 
+            N_larger += 1
+	
+    print "N_trials=%d n_larger=%d chi2_data=%f" %(N_trials, N_larger, chi2_data)
+    
+    p_value = 1. - N_larger/N_trials
+    sigma = getSigmaFromPValue(p_value)
+    
+    return p_value, sigma
+#end compute_null_significance
+
 #-------------------------------------------------------------------------------
 def update_dict(d, value, keysToUpdate):
     """
