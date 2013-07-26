@@ -9,7 +9,73 @@ import collections
 import sys
 import itertools
 import operator
+from scipy.interpolate import InterpolatedUnivariateSpline
 
+def vincenty_sphere_dist(ra1, dec1, ra2, dec2):
+    """
+    Method implementing the Vincenty formula for angular distance 
+    on a sphere: stable at poles and antipodes but more 
+    complex/computationally expensive. Input ra/dec are in degrees.
+
+    
+    Returns the angular separation in degrees.
+    """
+    toRad = np.pi/180.
+    lon1, lat1 = ra1*toRad, dec1*toRad
+    lon2, lat2 = ra2*toRad, dec2*toRad
+
+    sdlon = np.sin(lon2 - lon1)
+    cdlon = np.cos(lon2 - lon1)
+    slat1 = np.sin(lat1)
+    slat2 = np.sin(lat2)
+    clat1 = np.cos(lat1)
+    clat2 = np.cos(lat2)
+
+    num1 = clat2 * sdlon
+    num2 = clat1 * slat2 - slat1 * clat2 * cdlon
+    denominator = slat1 * slat2 + clat1 * clat2 * cdlon
+
+    return 180./np.pi*np.arctan2((num1**2 + num2**2)**0.5, denominator)
+#end vincenty_sphere_dist
+
+#-------------------------------------------------------------------------------
+def random_variates_from_dist(x, dist, size=1, cumulative=False):
+    """
+    Returns a random variate from the input discrete distribution using the
+    inverse transform sampling method
+    
+    Parameters
+    ----------
+    x : numpy.ndarray
+        the random variates corresponding to dist
+    dist : numpy.ndarray
+        the desired probability distribution
+    size : int, optional
+        the number of random_variates to return
+    cumulative : bool, optional
+        whether the input distribution is a cumulative distribution or not
+    """
+    if not cumulative:
+        F = dist.cumsum() / sum(dist)
+    else:
+        F = 1.*dist/dist.max()
+        
+    f_interp = InterpolatedUnivariateSpline(x, F)
+    xmin = np.amin(x)    
+    xmax = np.amax(x)     
+
+    if size == 1:    
+        r = np.random.random(size=size)*(1.-xmin) + xmin
+        return bisect(lambda a: f_interp(a)-r, xmin, xmax)
+    else:
+        rands = np.random.random(size=size)*(1.-xmin) + xmin
+        ans = []
+        for r in rands:
+            ans.append(bisect(lambda a: f_interp(a)-r, xmin, xmax) )
+        return np.array(ans)
+#end random_variate_from_dist
+
+#-------------------------------------------------------------------------------
 def compute_covariance_matrix(X):
     """
     Computes the maximum-likelihood covariance matrix of the data given by X.
@@ -31,6 +97,35 @@ def compute_covariance_matrix(X):
 #end compute_covariance_matrix
 
 #-------------------------------------------------------------------------------
+def mean_correlations(corr_matrix):
+    """
+    Compute the mean correlations between bins of a given separation, from 
+    a correlation matrix
+    
+    Parameters
+    ----------
+    corr_matrix : numpy.ndarray, shape (N_bins, N_bins)
+        the correlation matrix
+        
+    Returns
+    -------
+    mean_corr : numpy.ndarray, shape (N_bins, )
+        the mean correlation separated by a given distance  
+    """
+    N_bins = corr_matrix.shape[0]
+    x = collections.defaultdict(list)
+    for i in xrange(N_bins):
+        for j in xrange(i, N_bins):
+            sep = abs(i-j)
+            x[sep].append(corr_matrix[i, j])
+            
+    mean_corr = np.zeros(N_bins)
+    for sep, vals in x.iteritems():
+        mean_corr[sep] = np.mean(vals)
+    return mean_corr
+#end mean_correlations
+
+#-------------------------------------------------------------------------------
 def compute_delta_chisq(data, errs, model):
     """
     Compute the square root of chisq_null - chisq_model
@@ -39,7 +134,7 @@ def compute_delta_chisq(data, errs, model):
     chisq_null = np.sum( (data/errs)**2 )
     chisq_model = np.sum( (data-model)**2/errs**2 )
     
-    return np.sqrt(chisq_null - chisq_model)
+    return np.sqrt(abs(chisq_null - chisq_model))
 #end compute_delta_chisq
 
 #-------------------------------------------------------------------------------
