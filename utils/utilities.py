@@ -10,7 +10,38 @@ import sys
 import itertools
 import operator
 from scipy.interpolate import InterpolatedUnivariateSpline
+import mpfit
 
+def fit_amplitude(data, errs, model):
+    """
+    Fit an amplitude to the data using a given model
+    """
+    def modelFunction(theory, p):
+        return p[0]*theory
+
+    def fittingFunction(p, fjac=None, theory=None, y=None, err=None):
+        model = modelFunction(theory, p)
+        status = 0
+        return ([status, (y-model)/err])
+
+    # measure the amplitude
+    p0 = [1.0]
+    fa = {'theory': model, 'y': data, 'err': errs}
+    m = mpfit.mpfit(fittingFunction, p0, functkw=fa)
+    
+    # the amplitude
+    A = m.params[0]
+    
+    # degrees of freedom
+    dof = len(data) - len(m.params) 
+    
+    # scaled uncertainties
+    A_err = m.perror[0] * np.sqrt(m.fnorm / dof)
+    
+    return A, A_err
+#end fit_amplitude
+
+#-------------------------------------------------------------------------------
 def vincenty_sphere_dist(ra1, dec1, ra2, dec2):
     """
     Method implementing the Vincenty formula for angular distance 
@@ -74,6 +105,25 @@ def random_variates_from_dist(x, dist, size=1, cumulative=False):
             ans.append(bisect(lambda a: f_interp(a)-r, xmin, xmax) )
         return np.array(ans)
 #end random_variate_from_dist
+
+#-------------------------------------------------------------------------------
+def normalize_covariance_matrix(covar):
+    """
+    Return the correlation matrix from a covariance matrix
+    """
+    N, nBins = covar.shape
+    corr = covar.copy()
+    
+    # normalize the covariance matrix now
+    variances = np.diag(corr)
+    i, j = np.triu_indices(nBins)
+    corr[i, j] /= np.sqrt(variances[i])*np.sqrt(variances[j])
+    
+    i, j = np.tril_indices(nBins, k=-1)
+    corr[i, j] /= np.sqrt(variances[i])*np.sqrt(variances[j])
+    
+    return corr
+#end normalize_covariance_matrix
 
 #-------------------------------------------------------------------------------
 def compute_covariance_matrix(X):
