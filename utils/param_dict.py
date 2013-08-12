@@ -150,6 +150,9 @@ class param_dict( object ):
     def is_empty(self):
         return len(self.keys()) == 0
     
+    def get(self, key, default):
+        return self.__dict__.get(key, default)
+    
     update = update_param_dict    
     
         
