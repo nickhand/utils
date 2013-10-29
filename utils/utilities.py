@@ -1,7 +1,7 @@
 import numpy as np
 import progressbar as pb
-from scipy.special import gammaincc
-from scipy.optimize import bisect, fmin
+from scipy.special import gammaincc, erf
+from scipy.optimize import bisect, fmin, brentq
 from scipy.integrate import quad
 import pylab
 from catIO import catalog
@@ -11,11 +11,93 @@ import itertools
 import operator
 from scipy.interpolate import InterpolatedUnivariateSpline
 import mpfit
+from utils import pytools
+import pylab
 
+def amplitude_likelihood(A, data, model, covar):
+    """
+    Return the likelihood given the input data, model, and covariance
+    for a series of model amplitudes
+    """
+    # define the likelihood function
+    def likelihood(A, d, th, cov):
+        C_inv = np.linalg.inv(cov)
+        Y_mu = d - A*th
+        chisq = np.dot(Y_mu, np.dot(C_inv, Y_mu))
+        det = np.linalg.det(cov)
+        logp = -0.5*np.log(2*np.pi*det)  - 0.5*chisq
+        return np.exp(logp)
+        
+    if np.isscalar(A):
+        return likelihood(A, data, model, covar)
+    else:
+        p = np.array([likelihood(x, data, model, covar) for x in A])
+        return p/p.max()
+#end amplitude_likelihood
+    
+#-------------------------------------------------------------------------------
+def fit_amplitude_ML(data, model, covar, prob=0.6827):
+    """
+    Fit the data to a model using maximum-likelihood method, returning the
+    best fit amplitude and error
+    
+    Parameters
+    ----------
+    data : numpy.ndarray
+        the data array
+    model : numpy.ndarray
+        the model array to fit the amplitude of
+    covar : numpy.ndarray
+        the covariance matrix specifying the uncertainties
+    prob : float, optional
+        the area under the curve corresponding to the uncertainty on the 
+        amplitude desired. Default is prob = 0.6827, which corresponds to the 
+        1-sigma error.
+    
+    Returns
+    -------
+    A : float
+        the best-fit amplitude
+    A_err : float
+        the uncertainty in the amplitude, specie
+    """
+    # define the likelihood function
+    def nlog_likelihood(A, d, th, cov):
+        C_inv = np.linalg.inv(cov)
+        Y_mu = d - A*th
+        chisq = np.dot(Y_mu, np.dot(C_inv, Y_mu))
+        det = np.linalg.det(cov)
+        logp = -0.5*np.log(2*np.pi*det)  - 0.5*chisq
+        return -logp
+        
+    # do the minimization    
+    A_best = fmin(nlog_likelihood, 1.0, args=(data, model, covar,))[0]
+        
+    norm = quad(lambda x: np.exp(-nlog_likelihood(x, data, model, covar)) , -np.inf, np.inf)[0]
+    def objective(x):
+        val = quad(lambda y: np.exp(-nlog_likelihood(y, data, model, covar)), A_best-x, A_best+x)[0]/norm
+        return val - prob
+
+    
+    # now calculate sigma
+    A_err = bisect(objective, 0., A_best+100.*abs(A_best))
+    return A_best, A_err
+#end fit_amplitude_ML
+
+#-------------------------------------------------------------------------------
 def fit_amplitude(data, errs, model):
     """
-    Fit an amplitude to the data using a given model
+    Fit an amplitude to the data using a given model, using a chi squared
+    least squares fit
+    
+    Returns
+    -------
+    A : float
+        the best-fit amplitude
+    A_err : float
+        the 1 sigma uncertainty in the amplitude
     """
+    
     def modelFunction(theory, p):
         return p[0]*theory
 
@@ -176,23 +258,48 @@ def mean_correlations(corr_matrix):
 #end mean_correlations
 
 #-------------------------------------------------------------------------------
-def compute_delta_chisq(data, errs, model):
+def compute_delta_chisq(data, covar_matrix, model):
     """
     Compute the square root of chisq_null - chisq_model
-    """
     
-    chisq_null = np.sum( (data/errs)**2 )
-    chisq_model = np.sum( (data-model)**2/errs**2 )
+    Parameters
+    ----------
+    data : numpy.ndarray
+        the array holding the data points
+    covar_matrix : numpy.ndarray
+        the covariance matrix of the data
+    model : numpy.ndarray
+        the expected model data points
+    """
+    C_inv = np.linalg.inv(covar_matrix)
+    chisq_null = np.dot(data, np.dot(C_inv, data))
+    chisq_model = np.dot(data-model, np.dot(C_inv, data-model))
     
     return np.sqrt(abs(chisq_null - chisq_model))
 #end compute_delta_chisq
 
 #-------------------------------------------------------------------------------
-def compute_null_significance(data, errs, covar_matrix, N_trials=1e6):
+def compute_null_significance(data, covar_matrix, N_trials=1e6):
     """
     Generate random correlated deviates and compute the significance of the 
     data away from a null signal. Assuming normal distribution errors, return
     the p-value and the sigma value
+    
+    Parameters
+    ----------
+    data : numpy.ndarray
+        the data array
+    covar_matrix : numpy.ndarray
+        the covariance matrix
+    N_trials : float, optional
+        the number of trials to do, default is 1e6
+        
+    Returns
+    -------
+    p_value : float
+        the probability that random variates have this chi-squared
+    sigma : float
+        the significance in sigma, assuming gaussian statistics
     """
     nBins = len(data)
     
@@ -200,27 +307,27 @@ def compute_null_significance(data, errs, covar_matrix, N_trials=1e6):
     A = np.linalg.cholesky(covar_matrix)
     
     # get the chisq of the data
-    model = np.zeros(nBins)
-    chi2_data = np.sum( (data-model)**2/errs**2 )
+    C_inv = np.linalg.inv(covar_matrix)
+    chi2_data = np.dot(data, np.dot(C_inv, data))
     
     # count number of trials where chi2 > chi2_data
     N_larger = 0 
     for i in xrange(int(N_trials)):
         
         # generate nBins random gaussian deviates
-        devs_uncorrelated = np.random.normal(size=len(errs))
+        devs_uncorrelated = np.random.normal(size=len(data))
     
         # use correlation matrix to get correlated deviates
         devs_correlated = np.dot(A, devs_uncorrelated)
         
-        chi2 = np.sum( (devs_correlated/errs)**2 )
+        chi2 = np.dot(devs_correlated, np.dot(C_inv, devs_correlated))
 	
         if (chi2 > chi2_data): 
             N_larger += 1
 	
     print "N_trials=%d n_larger=%d chi2_data=%f" %(N_trials, N_larger, chi2_data)
     
-    p_value = 1. - N_larger/N_trials
+    p_value = 1.0*N_larger/N_trials
     sigma = getSigmaFromPValue(p_value)
     
     return p_value, sigma
@@ -486,8 +593,8 @@ def getSigmaFromChiSquared(chi_sq, dof):
     # now calculate sigma
     sigma = bisect(func2, 0, 100)
 
-    # 1 - p is probability that random variates could have this chi-squared value
-    return sigma, 1-p
+    # p is probability that random variates could have this chi-squared value
+    return sigma, p
 #end getSigmaFromChiSquared
     
 #-------------------------------------------------------------------------------
@@ -498,19 +605,19 @@ def getSigmaFromPValue(p_value):
     Parameters
     ----------
     p_value : float 
-        1 - p_value is prob that random variates could have a given chi squared
+        p_value is the probability of obtaining a test statistic at least as 
+        extreme as the one that was actually observed
 
     Returns
     -------
     sigma : float
         the significance in sigma
     """
-    def func(x):
-        val = quad(lambda y: 1.0/np.sqrt(2.0*np.pi)*np.exp(-y**2/2.0), -x, x)
-        return val[0] - p_value
+    def objective(x):
+        return 1. - erf(x/np.sqrt(2.)) - p_value
 
     # now calculate sigma
-    sigma = bisect(func, 0, 100)
+    sigma = bisect(objective, 0, 100)
 
     return sigma
 #end getSigmaFromPValue
