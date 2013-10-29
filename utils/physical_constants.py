@@ -60,26 +60,27 @@ watt            = 1e7 * erg / second
 rydberg         = 10973731.568539 * meter**(-1.) * h_planck*c_light
 
 # astronomical constants
-au         = 149597870700*meter      # the astronomical unit
+au        = 149597870700*meter      # the astronomical unit
 degree    = pi/180.
 arcminute = degree/60.
 arcsecond = arcminute/60.            # radians
-parsec     = au / arcsecond          # cm
-minute     = 60.                     # seconds
-hour       = 60. * 60.               # seconds
-day        = 8.64e4                  # seconds
-year       = 365.2425 * day          # seconds
-Mpc        = mega*parsec
+parsec    = au / arcsecond          # cm
+minute    = 60.                     # seconds
+hour      = 60. * 60.               # seconds
+day       = 8.64e4                  # seconds
+year      = 365.2425 * day          # seconds
+Mpc       = mega*parsec
+lyr       = c_light*year            # light year
                                                                     
 L_sun = 3.826e33              # erg/s
-M_sun = 1.9891e33             # gm
+M_sun = 1.9891e33             # g
 R_sun = 6.9598e10             # cm
 T_sun = 5770.0                # kelvin
 
 
-M_earth   = 5.976e27            # Earth mass in gm
+M_earth   = 5.976e27            # Earth mass in g
 R_earth   = 6371 * km           # Earth's equatorial radius in cm 
-M_jupiter = 1898.8e27           # Jupiter in gm
+M_jupiter = 1898.8e27           # Jupiter in g
 R_jupiter = 70850 * km          # Jupiter's equatorial radius in cm
 
 
