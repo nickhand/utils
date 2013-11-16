@@ -14,6 +14,7 @@ import mpfit
 from utils import pytools
 import pylab
 
+#-------------------------------------------------------------------------------
 def amplitude_likelihood(A, data, model, covar):
     """
     Return the likelihood given the input data, model, and covariance
@@ -258,7 +259,7 @@ def mean_correlations(corr_matrix):
 #end mean_correlations
 
 #-------------------------------------------------------------------------------
-def compute_delta_chisq(data, covar_matrix, model):
+def compute_delta_chisq(data, covar_matrix, model, return_chi_sqs=False):
     """
     Compute the square root of chisq_null - chisq_model
     
@@ -270,12 +271,19 @@ def compute_delta_chisq(data, covar_matrix, model):
         the covariance matrix of the data
     model : numpy.ndarray
         the expected model data points
+    return_chi_sqs : bool, optional
+        if True, also return chisq_null and chisq_model as the 2nd 
+        and 3rd arguments
     """
     C_inv = np.linalg.inv(covar_matrix)
     chisq_null = np.dot(data, np.dot(C_inv, data))
     chisq_model = np.dot(data-model, np.dot(C_inv, data-model))
     
-    return np.sqrt(abs(chisq_null - chisq_model))
+    sig = np.sqrt(abs(chisq_null - chisq_model))
+    if return_chi_sqs:
+        return sig, chisq_null, chisq_model
+    else:
+        return sig
 #end compute_delta_chisq
 
 #-------------------------------------------------------------------------------
@@ -330,7 +338,7 @@ def compute_null_significance(data, covar_matrix, N_trials=1e6):
     p_value = 1.0*N_larger/N_trials
     sigma = getSigmaFromPValue(p_value)
     
-    return p_value, sigma
+    return p_value, sigma, chi2_data
 #end compute_null_significance
 
 #-------------------------------------------------------------------------------
@@ -770,6 +778,9 @@ def weighted_mean_arrays(vals, errs):
     """
     vals = np.asarray(vals)
     errs = np.asarray(errs)
+    
+    inds = np.where(np.isnan(errs))
+    errs[inds] = np.inf
     
     mean_vals = np.sum(vals/errs**2, axis=0) / np.sum(1/errs**2, axis=0)
     mean_errs = np.sum(1./errs**2, axis=0)**(-0.5)
