@@ -1,0 +1,56 @@
+"""
+ truncateAuthorLists
+ truncate the author lists of a bibtex file, and output a new .bib file
+ 
+ author: Nick Hand
+ contact: nhand@berkeley.edu
+ creation date: 11/14/2013
+"""
+import argparse
+from textools import bib
+
+def main(args):
+    
+    # load the input bibtex file
+    bfile = bib.bibfile(args.bibfile)
+    bfile.load()
+    
+    # truncate the author lists
+    for key, bitem in bfile.iteritems():
+        if bitem.author_count > args.max_authors:
+            
+            # enter a collaboration name, if desired
+            if args.input_collabs:
+                bitem.info()
+                collab_name = raw_input("Please enter a collaboration name: ")
+                if collab_name is not "":
+                    bitem.add("Collaboration", collab_name)
+                
+            bitem.truncate_authors(N=args.truncated_length, ending=args.ending)
+            
+
+    
+    bfile.write(args.outfile)
+
+if __name__ == '__main__':
+    
+    desc = "truncate the author lists of a bibtex file"
+    parser = argparse.ArgumentParser(description=desc)
+    
+    h = "the maximum number of authors before truncating; default = 10"
+    parser.add_argument('--max_authors', default = 10, type=int, help=h)
+    h = "the number of authors to include on a truncated list; default = 1"
+    parser.add_argument('--truncated_length', default = 1, type=int, help=h)
+    h = "the ending to replace the authors with"
+    parser.add_argument('--ending', default='others', type=str, help=h) 
+    h = "whether to enter the collaboration field"
+    parser.add_argument('--input-collabs', action='store_true', default=False,  help=h)
+    
+    h = "the name of the input bibtex file"
+    parser.add_argument('bibfile', type=str, help=h)
+    h = "the name of the output file"
+    parser.add_argument('outfile', type=str, help=h)
+    
+    args = parser.parse_args()
+    
+    main(args)
