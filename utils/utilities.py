@@ -74,7 +74,7 @@ def fit_amplitude_ML(data, model, covar, prob=0.6827, quiet=False):
         return -logp
         
     # do the minimization    
-    print int(~quiet)
+    print int(not quiet)
     A_best = fmin(nlog_likelihood, 1.0, args=(data, model, covar,), disp=~quiet)[0]
         
     norm = quad(lambda x: np.exp(-nlog_likelihood(x, data, model, covar)) , -np.inf, np.inf)[0]
