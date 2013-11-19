@@ -37,7 +37,7 @@ def amplitude_likelihood(A, data, model, covar):
 #end amplitude_likelihood
     
 #-------------------------------------------------------------------------------
-def fit_amplitude_ML(data, model, covar, prob=0.6827):
+def fit_amplitude_ML(data, model, covar, prob=0.6827, quiet=False):
     """
     Fit the data to a model using maximum-likelihood method, returning the
     best fit amplitude and error
@@ -54,6 +54,8 @@ def fit_amplitude_ML(data, model, covar, prob=0.6827):
         the area under the curve corresponding to the uncertainty on the 
         amplitude desired. Default is prob = 0.6827, which corresponds to the 
         1-sigma error.
+    quiet : bool, optional
+        whether to quiet the convergence messages, default = False
     
     Returns
     -------
@@ -570,7 +572,7 @@ def extrap1d(interpolator):
 def getSigmaFromChiSquared(chi_sq, dof):
     """
     Compute the significance (in sigma) of a chi squared value and degrees 
-    of freedom (from Numerical Recipes)
+    of freedom (from Numerical Recipes, section 6.2)
     
     Parameters
     ----------
@@ -583,8 +585,9 @@ def getSigmaFromChiSquared(chi_sq, dof):
     -------
     sigma : float
         the significance in sigma
-    prob : float
-        the probability that random variates have this chi-squared
+    p-value : float
+        p_value is the probability of obtaining a test statistic at least as 
+        extreme as the one that was actually observed
     """
     def func1(x):
         return x - 1.0 + gammaincc(dof/2.0, chi_sq/2.0)
@@ -593,16 +596,14 @@ def getSigmaFromChiSquared(chi_sq, dof):
     p = bisect(func1, 0, 1.0)
 
     def func2(x):
-
         val = quad(lambda y: 1.0/np.sqrt(2.0*np.pi)*np.exp(-y**2/2.0), -x, x)
-
         return val[0] - p
 
     # now calculate sigma
     sigma = bisect(func2, 0, 100)
 
     # p is probability that random variates could have this chi-squared value
-    return sigma, p
+    return sigma, 1-p
 #end getSigmaFromChiSquared
     
 #-------------------------------------------------------------------------------
