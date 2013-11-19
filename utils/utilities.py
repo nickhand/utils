@@ -62,7 +62,7 @@ def fit_amplitude_ML(data, model, covar, prob=0.6827, quiet=False):
     A : float
         the best-fit amplitude
     A_err : float
-        the uncertainty in the amplitude, specie
+        the uncertainty in the amplitude, specified by prob
     """
     # define the likelihood function
     def nlog_likelihood(A, d, th, cov):
@@ -84,7 +84,10 @@ def fit_amplitude_ML(data, model, covar, prob=0.6827, quiet=False):
 
     
     # now calculate sigma
-    A_err = bisect(objective, 0., A_best+100.*abs(A_best))
+    try:
+        A_err = bisect(objective,  A_best-100.*abs(A_best), A_best+100.*abs(A_best))
+    except: 
+        A_err = None
     return A_best, A_err
 #end fit_amplitude_ML
 
