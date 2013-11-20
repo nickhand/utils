@@ -37,7 +37,7 @@ def amplitude_likelihood(A, data, model, covar):
 #end amplitude_likelihood
     
 #-------------------------------------------------------------------------------
-def fit_amplitude_ML(data, model, covar, prob=0.6827, quiet=False):
+def fit_amplitude_ML(data, model, covar, prob=0.6827, quiet=False, compute_error=True):
     """
     Fit the data to a model using maximum-likelihood method, returning the
     best fit amplitude and error
@@ -56,6 +56,8 @@ def fit_amplitude_ML(data, model, covar, prob=0.6827, quiet=False):
         1-sigma error.
     quiet : bool, optional
         whether to quiet the convergence messages, default = False
+    compute_error : bool, optional
+        whether to compute the error, too
     
     Returns
     -------
@@ -77,17 +79,19 @@ def fit_amplitude_ML(data, model, covar, prob=0.6827, quiet=False):
     quiet = int(not quiet)
     A_best = fmin(nlog_likelihood, 1.0, args=(data, model, covar,), disp=quiet)[0]
         
-    norm = quad(lambda x: np.exp(-nlog_likelihood(x, data, model, covar)) , -np.inf, np.inf)[0]
-    def objective(x):
-        val = quad(lambda y: np.exp(-nlog_likelihood(y, data, model, covar)), A_best-x, A_best+x)[0]/norm
-        return val - prob
-
+    A_err = None
+    if compute_error:
+        norm = quad(lambda x: np.exp(-nlog_likelihood(x, data, model, covar)) , -np.inf, np.inf)[0]
+        def objective(x):
+            val = quad(lambda y: np.exp(-nlog_likelihood(y, data, model, covar)), A_best-x, A_best+x)[0]/norm
+            return val - prob
     
-    # now calculate sigma
-    try:
-        A_err = bisect(objective,  A_best-100.*abs(A_best), A_best+100.*abs(A_best))
-    except: 
-        A_err = None
+        # now calculate sigma
+        try:
+            A_err = bisect(objective,  A_best-100.*abs(A_best), A_best+100.*abs(A_best))
+        except: 
+            pass
+
     return A_best, A_err
 #end fit_amplitude_ML
 
