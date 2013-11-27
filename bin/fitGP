@@ -1,0 +1,111 @@
+#!/usr/bin/env python
+"""
+ fitGP
+ read in a data file and fit using gaussian process
+ 
+ author: Nick Hand
+ contact: nhand@berkeley.edu
+ creation date: 11/26/2013
+"""
+import argparse, os, sys
+from gaussian_process import GaussianProcess
+import pylab as pl
+import numpy as np
+from catIO import catalog
+from utils import utilities
+
+def main(args):
+    """
+    Do the gaussian process fit, and plot
+    """
+
+    # read in the data to fit
+    if args.x_name.isdigit():
+        data = np.loadtxt(args.data_file)
+        xvar = data[: , int(args.x_name)]
+        yvar = data[: , int(args.y_name)]
+        
+        yerrs = True
+        try:
+            yerr = data[:,int(args.yerr_name)]
+        except:
+            print "Warning: no y-errors found"
+            yerr = yvar*args.error_factor
+    else:
+        cat = catalog.catalog(catFile=args.data_file)
+        xvar = cat.arrayFromCol(args.x_name)
+        yvar = cat.arrayFromCol(args.y_name)
+        yerr = cat.arrayFromCol(args.yerr_name)
+        
+    gp = GaussianProcess(theta0 = args.theta0, 
+                         covfunction=args.covariance, verbose=args.verbose, 
+                         fixed=args.fixed, random_start=args.random_start)
+                       
+  
+    gp.fit(xvar, yvar, yerr)
+
+    # make the prediction on the meshed x-axis
+    final_x = utilities.eval_function_call(args.x_final)
+    y_pred, sigma = gp.predict(final_x)
+    
+    if args.output is not None:
+        np.savetxt(args.output, zip(final_x, y_pred))
+    
+    pl.errorbar(xvar, yvar, yerr)
+    pl.plot(final_x, y_pred, alpha=0.5)
+    pl.show()
+    
+    
+    
+    
+#-------------------------------------------------------------------------------
+
+if __name__ == '__main__':
+    
+    # parse the input arguments
+    desc = "fit using a Gaussian process"
+    parser = argparse.ArgumentParser(description=desc)
+    
+    # arguments
+    h = "the data file holding the data to interpolate"
+    parser.add_argument("data_file", type=str, help=h)
+    
+    h = "the final x values to interpolete to"
+    parser.add_argument("x_final", type=str, help=h)
+    
+    h = "the error factor to multiply the data by, if no y-errors specified; default = 0.1"
+    parser.add_argument("--error-factor", type=float, default=0.1, help=h)
+    
+    h = 'the name of the output file'
+    parser.add_argument("--output", type=str, help=h)
+    
+    # options to read in the data
+    h = "the name of the x variable to plot"
+    parser.add_argument("--x-name", default='0', type=str, help=h)
+    h = "the name of the y variable to plot"
+    parser.add_argument("--y-name",  default='1', type=str, help=h)
+    h = "the name of the error on the y variable"
+    parser.add_argument("--yerr-name", default='2', type=str, help=h)
+    
+    # options to initialize the gp module
+    h = "the covariance model to use; default is matern32"
+    parser.add_argument("--covariance", type=str, 
+                        choices=['squared_exponential','matern32', 'matern52'], 
+                        default='matern32', help=h)
+                        
+    h = "the theta0 values to use in the fit; default is [1, 1, 1]"
+    parser.add_argument("--theta0", type=float, nargs=3, default=[0.5, 1.0, 2.], help=h)
+    
+    h = "use verbose output"
+    parser.add_argument("--verbose", default=False, action='store_true', help=h)
+    
+    h = "list of gaussian process parameters to hold fixed; default is [False, False, False]"
+    parser.add_argument("--fixed", type=int, nargs=3, default=[0, 0, 0], help=h)
+    
+    h = 'number of random starts to use; default is 10'
+    parser.add_argument("--random-start", type=int, default=10, help=h)
+    
+    
+    args = parser.parse_args()
+    
+    main(args)
