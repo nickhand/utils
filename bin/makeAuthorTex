@@ -1,0 +1,75 @@
+#!/usr/bin/env python
+"""
+ makeAuthorTex
+ Output a latex author list for inclusion in a manuscript.
+ 
+ author: Nick Hand
+ contact: nhand@berkeley.edu
+ creation date: 11/20/2013
+"""
+import argparse
+from textools import authors
+try:
+    import author_data # look there for details of names/places
+except:
+    raise ImportError("Cannot locate author data module (author_data.py)")
+
+def main(args):
+    
+    # Parse the strings in author_data.py
+    institutions = authors.parse_addresses(author_data.institution_text)
+    other_authors = authors.parse_names(author_data.author_text)
+
+    # Lead authors go first, in the order given on the cmd line
+    # Name testing is lame: names match if they end with the same
+    # case-insensitive strings.
+    lead_authors = authors.AuthorList()
+    for authName in args.lead_authors:
+
+        for a in other_authors:
+            if a.name.lower().endswith(authName.lower()):
+                lead_authors.append(a)
+                other_authors.remove(a)
+                break
+
+
+    auths = lead_authors + other_authors
+    etAl = False
+        
+    if args.initials: 
+        auths.initials_only = True
+    
+    
+    tex = auths.latex(institutions, addEtAl = etAl, first_author=args.lead_authors[0], first_email=args.first_email)
+    if args.outfile is None:
+       print tex 
+    else:
+        f = open(args.outfile, 'w')
+        f.write(tex)
+        f.close()
+#end main
+
+#-------------------------------------------------------------------------------
+if __name__=='__main__':
+
+
+    # parse the input arguments
+    desc = "Output a latex author list for inclusion in a manuscript." + \
+           " Put the given authors first in given order; alphabetize all others."
+    
+    parser = argparse.ArgumentParser(description="")
+    h = "the last names of the lead authors"
+    parser.add_argument('lead_authors', type=str, nargs="*", help=h) 
+    
+    h = "whether to only use initials"
+    parser.add_argument("--initials-only", action="store_true", dest="initials", help=h)
+
+    h = "add the email of the first author"
+    parser.add_argument("--first-email", type=str, help=h)
+    
+    h = "write output to this file"
+    parser.add_argument("--outfile", type=str, help=h)
+    
+    args = parser.parse_args()
+    main(args)
+    
