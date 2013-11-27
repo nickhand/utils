@@ -7,7 +7,96 @@ import itertools
 import operator
 from utils import pytools
 import collections
+import re
+import ast
 
+
+
+def _collect_offsets(call_string):
+    """
+    Internal method used by eval_function_call to determine the 
+    argument offsets in the string
+    """
+    def _abs_offset(lineno, col_offset):
+        current_lineno = 0
+        total = 0
+        for line in call_string.splitlines():
+            current_lineno += 1
+            if current_lineno == lineno:
+                return col_offset + total
+            total += len(line)
+    # parse call_string with ast
+    call = ast.parse(call_string).body[0].value
+    
+    # collect offsets provided by ast
+    offsets = []
+    for arg in call.args:
+        a = arg
+        while isinstance(a, ast.BinOp):
+            a = a.left
+        offsets.append(_abs_offset(a.lineno, a.col_offset))
+    for kw in call.keywords:
+        offsets.append(_abs_offset(kw.value.lineno, kw.value.col_offset))
+    if call.starargs:
+        offsets.append(_abs_offset(call.starargs.lineno, call.starargs.col_offset))
+    if call.kwargs:
+        offsets.append(_abs_offset(call.kwargs.lineno, call.kwargs.col_offset))
+    offsets.append(len(call_string))
+    return offsets
+#end _collect_offsets
+
+#-------------------------------------------------------------------------------
+def _argpos(call_string):
+    """
+    Internal method used by eval_function_call to find the string positions
+    of the arguments
+    """
+    def _find_start(prev_end, offset):
+        s = call_string[prev_end:offset]
+        m = re.search('(\(|,)(\s*)(.*?)$', s)
+        return prev_end + m.regs[3][0]
+    def _find_end(start, next_offset):
+        s = call_string[start:next_offset]
+        m = re.search('(\s*)$', s[:max(s.rfind(','), s.rfind(')'))])
+        return start + m.start()
+
+    offsets = _collect_offsets(call_string)   
+
+    result = []
+    end = 0
+    # given offsets = [9, 14, 21, ...],
+    # zip(offsets, offsets[1:]) returns [(9, 14), (14, 21), ...]
+    for offset, next_offset in zip(offsets, offsets[1:]):
+        start = _find_start(end, offset)
+        end = _find_end(start, next_offset)
+        result.append((start, end))
+    return result
+#end _argpos
+        
+#-------------------------------------------------------------------------------
+def eval_function_call(call_string):
+    """
+    Read in the string giving a function call and
+    evaluate the call
+    
+    Parameters
+    ----------
+    call_string : str
+        the string version of the function call
+    """
+    
+    fstring = call_string.split("(", 1)[0]
+    func = stringToFunction(fstring)
+    
+    args = []
+    pos = _argpos(call_string)
+    for p in pos:
+        args.append(eval(call_string[p[0]:p[1]]))
+        
+    call = ast.parse(call_string).body[0].value
+    return func(*args)
+#end eval_function_call
+    
 #-------------------------------------------------------------------------------
 def vincenty_sphere_dist(ra1, dec1, ra2, dec2):
     """
@@ -344,10 +433,14 @@ def stringToFunction(astr):
     if module:
         __import__(module)
         mod = sys.modules[module]
+        return getattr(mod, function)
     else:
-        mod = sys.modules['__main__']
-
-    return getattr(mod, function)
+        try:
+            mod = sys.modules['__main__']
+            return getattr(mod, function)
+        except:
+            mod = sys.modules['__builtin__']
+            return getattr(mod, function)
 #end stringToFunction
     
 #-------------------------------------------------------------------------------
