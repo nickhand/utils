@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Generate a LaTeX authors list (to stdout) given a first author
 (or multiple lead authors).  Also the associated affiliation 
@@ -7,9 +5,6 @@ addresses are generated.
 
 Usage: authors.py leadAuthorLastName [otherLeadLastNames...]
 """
-
-import author_data # look there for details of names/places
-import optparse
 import string, sys
 
 
@@ -55,7 +50,7 @@ class Author(object):
         # marks.sort()
         return ",".join(marks)
 
-    def latex(self, affiliations, initials_only = False, last=False):
+    def latex(self, affiliations, initials_only = False, last=False, add_email=None):
         """
         affiliations is an Affiliation object.
         Set last = True for the last author in a list (supresses the comma)
@@ -79,7 +74,12 @@ class Author(object):
                 ret = ret + "~" + names[i]
             else:
                 ret = ret + names[i]
-        ret = r"\author{%s}" %ret + "\n"
+        
+        if add_email is None:
+            ret = r"\author{%s}" %ret + "\n"
+        else:
+            ret = r"\author{%s} \email{%s}" %(ret, add_email) + "\n"
+        
         
         for ad in self.addresses:
             affil = affiliations.affil_text(ad.strip())
@@ -98,7 +98,7 @@ class AuthorList(list):
         list.__init__(self, *args, **kwargs)
         
 
-    def latex(self, affiliations, addEtAl = False):
+    def latex(self, affiliations, addEtAl = False, first_author=None, first_email=None):
         lines=[]
         lines.append(75*r"%")
         lines.append(
@@ -107,8 +107,11 @@ class AuthorList(list):
         lines.append("% Do not change by hand: your changes will be lost.\n")
 
         for a in self[:-1]:
+            add_email = None
+            if a.last_name == first_author and first_email is not None:
+                add_email = first_email
             lines.append( a.latex( affiliations, 
-                                   initials_only=self.initials_only ) )
+                                   initials_only=self.initials_only, add_email=add_email ) )
         
         if addEtAl:
             lines.append( self[-1].latex( affiliations, last=False,
@@ -210,69 +213,3 @@ def parse_names(string):
 
     auth.sort()
     return auth
-
-
-
-
-if __name__=='__main__':
-
-    # For now, no options to register.  Still, optparse rocks.
-    # It can make a nice help message.  So we stick it in here.
-    p = optparse.OptionParser()
-    usage="authors.py [-c, leadAuthorLastName otherLeadLastNames...]\n"+\
-        "  Put the given authors first in given order; alphabetize all others."+\
-        "  If used with -c, condenses other authors into  et al. "
-    p.set_usage(usage)
-    p.add_option("--initials-only", "-i", action="store_true",
-                 dest = "initials")
-    p.add_option("--condense-others", "-c", action="store_true",
-                 dest = "condenseOthers")
-    p.add_option("--exclude-list", "-e", action="store_true", 
-                 dest="excludeList", 
-                 help="exclude authors in local exclude_list.txt")
-    options, arguments = p.parse_args()
-
-    # Parse the strings in author_data.py
-    institutions = parse_addresses(author_data.institution_text)
-    other_authors = parse_names(author_data.author_text)
-
-    # Lead authors go first, in the order given on the cmd line
-    # Name testing is lame: names match if they end with the same
-    # case-insensitive strings.
-    lead_authors=AuthorList()
-    for authName in arguments:
-
-        for a in other_authors:
-            if a.name.lower().endswith(authName.lower()):
-                lead_authors.append(a)
-                other_authors.remove(a)
-                break
-
-    if options.excludeList:
-        elf = file("exclude_list.txt")
-        for name in elf:
-            for a in other_authors:
-                if a.name.lower().endswith(name[0:-1].lower()):
-                    other_authors.remove(a)
-                    break
-
-    if options.condenseOthers:
-        inst = Affiliations()
-        # print inst
-        authors = lead_authors
-        
-        for a in lead_authors:
-            for ad in a.addresses:
-                # print ad.strip(),institutions[ad.strip()]
-                inst[ad.strip()] = institutions[ad.strip()]
-        institutions = inst
-        etAl = True
-        #print inst
-    else:
-        authors = lead_authors + other_authors
-        etAl = False
-        
-    if options.initials: 
-        authors.initials_only = True
-    
-    print authors.latex(institutions, addEtAl = etAl)
