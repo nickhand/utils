@@ -25,27 +25,40 @@ def main(args):
         xvar = data[: , int(args.x_name)]
         yvar = data[: , int(args.y_name)]
         
-        yerrs = True
         try:
             yerr = data[:,int(args.yerr_name)]
         except:
             print "Warning: no y-errors found"
-            yerr = yvar*args.error_factor
+            yerr = yvar.copy()
     else:
         cat = catalog.catalog(catFile=args.data_file)
         xvar = cat.arrayFromCol(args.x_name)
         yvar = cat.arrayFromCol(args.y_name)
-        yerr = cat.arrayFromCol(args.yerr_name)
+        try:
+            yerr = cat.arrayFromCol(args.yerr_name)
+        except:
+            print "Warning: no y-errors found"
+            yerr = yvar.copy()
+    
+    if args.error_factor != 1.0:
+        yerr *= args.error_factor
+        
         
     gp = GaussianProcess(theta0 = args.theta0, 
                          covfunction=args.covariance, verbose=args.verbose, 
                          fixed=args.fixed, random_start=args.random_start)
                        
-  
+    # trim by min/max x_final
+    final_x = utilities.eval_function_call(args.x_final)
+    inds = np.where((xvar <= np.amax(final_x))*(xvar >= np.amin(final_x)))
+    xvar = xvar[inds]
+    yvar = yvar[inds]
+    yerr = yerr[inds]
+    
     gp.fit(xvar, yvar, yerr)
 
     # make the prediction on the meshed x-axis
-    final_x = utilities.eval_function_call(args.x_final)
+    
     y_pred, sigma = gp.predict(final_x)
     
     if args.output is not None:
@@ -74,7 +87,7 @@ if __name__ == '__main__':
     parser.add_argument("x_final", type=str, help=h)
     
     h = "the error factor to multiply the data by, if no y-errors specified; default = 0.1"
-    parser.add_argument("--error-factor", type=float, default=0.1, help=h)
+    parser.add_argument("--error-factor", type=float, default=1.0, help=h)
     
     h = 'the name of the output file'
     parser.add_argument("--output", type=str, help=h)

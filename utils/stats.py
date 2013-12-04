@@ -307,7 +307,7 @@ def compute_delta_chisq(data, covar_matrix, model, return_chi_sqs=False):
 #end compute_delta_chisq
 
 #-------------------------------------------------------------------------------
-def compute_null_significance(data, covar_matrix, N_trials=1e6):
+def compute_null_significance(data, covar_matrix, N_trials=1e6, model=None):
     """
     Generate random correlated deviates and compute the significance of the 
     data away from a null signal. Assuming normal distribution errors, return
@@ -321,6 +321,8 @@ def compute_null_significance(data, covar_matrix, N_trials=1e6):
         the covariance matrix
     N_trials : float, optional
         the number of trials to do; default = 1e6
+    model : numpy.ndarray, optional
+        if not None, generate random deviates around this model
         
     Returns
     -------
@@ -342,8 +344,12 @@ def compute_null_significance(data, covar_matrix, N_trials=1e6):
     # compute the correlated data
     devs_uncorrelated = np.vstack([np.random.normal(loc=0., size=N_trials) for i in range(nBins)]).T
     correlated_data = np.zeros(devs_uncorrelated.shape)
+    
+    mu = np.zeros(nBins)
+    if model is not None:
+        mu = model.copy()
     for i in xrange(N_trials):
-        correlated_data[i,:] = np.dot(A, devs_uncorrelated[i,:])
+        correlated_data[i,:] = np.dot(A, devs_uncorrelated[i,:]) + mu
         
     # count number of trials where chi2 > chi2_data
     N_larger = 0 
