@@ -1,6 +1,7 @@
 import multiprocessing as mp
 import logging, os, sys
-import tempfile, datetime, time
+import tempfile, datetime
+from utils import utilities
 progressLoaded = True
 try:
     from utils.utilities import initializeProgressBar
@@ -110,11 +111,9 @@ class mp_master(object):
         
             # make a unique file name for std out
             fileName, extension = os.path.splitext(os.path.basename(sys.argv[0]))
-            timeStamp = time.gmtime(time.time())
-            formatString = "%Y-%m-%d-%H-%M-%S"
-            timeStamp = time.strftime(formatString, timeStamp)
+            time_stamp = utilities.get_timestamp()
             self.stdout = open(os.getcwd() + os.sep + "%s.%s.log" \
-                                                %(fileName, timeStamp), 'w')
+                                                %(fileName, time_stamp), 'w')
             sys.stdout = self.stdout
         
             # set up the logger to log to sys.stderr

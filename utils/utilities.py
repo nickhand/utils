@@ -10,8 +10,22 @@ import collections
 import re
 import ast
 
-
-
+#-------------------------------------------------------------------------------
+def get_timestamp(fmt_str="%m-%d-%y_%H-%M-%S"):
+    """
+    Return the time stamp in string format corresponding to the specified format
+    string
+    
+    Parameters
+    ----------
+    fmt_str : str, optional
+        The format string for the time stamp; default is "%m-%d-%y_%H-%M-%S"
+    """
+    import datetime
+    return datetime.datetime.now().strftime("%m-%d-%y_%H-%M-%S")
+#end get_timestamp
+    
+#-------------------------------------------------------------------------------
 def _collect_offsets(call_string):
     """
     Internal method used by eval_function_call to determine the 
