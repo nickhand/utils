@@ -29,22 +29,24 @@ class model(object):
         """
         if which is None:
             for i in self._get_param_names():
-                if self.theta0[i] is not None:
-                    self.bounds[i] = (self.theta0[i]/1e15, None)
-                else:
-                    self.bounds[i] = (1e-20, None)
-        else:
-            if np.isscalar(which):
-                if self.theta0[which] is not None:
-                    self.bounds[which] = (self.theta0[which]/1e15, None)
-                else:
-                    self.bounds[which] = (1e-20, None)
-            else:
-                for i in which:
+                if self.bounds[i] is None:
                     if self.theta0[i] is not None:
                         self.bounds[i] = (self.theta0[i]/1e15, None)
                     else:
                         self.bounds[i] = (1e-20, None)
+        else:
+            if self.bounds[which] is None:
+                if np.isscalar(which):
+                    if self.theta0[which] is not None:
+                        self.bounds[which] = (self.theta0[which]/1e15, None)
+                    else:
+                        self.bounds[which] = (1e-20, None)
+                else:
+                    for i in which:
+                        if self.theta0[i] is not None:
+                            self.bounds[i] = (self.theta0[i]/1e15, None)
+                        else:
+                            self.bounds[i] = (1e-20, None)
         #end constrain_positive
         
     #---------------------------------------------------------------------------

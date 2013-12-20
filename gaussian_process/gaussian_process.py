@@ -181,7 +181,7 @@ class GaussianProcess(model.model):
         self._initialize_paramlist(theta0, self.theta0)
         self._initialize_paramlist(bounds, self.bounds)
         self._initialize_paramlist(fixed, self.fixed)
-            
+
         # verify the input parameters
         self._check_params()
         

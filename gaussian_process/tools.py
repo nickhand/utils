@@ -60,4 +60,4 @@ def chol_inv(L):
     :rtype: inverse of L
 
     """
-    return linalg.lapack.flapack.dtrtri(L, lower = True)[0]
+    return linalg.lapack.dtrtri(L, lower = True)[0]
