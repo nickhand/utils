@@ -7,7 +7,11 @@
  creation date: 05/12/2013
 """
 import numpy as np
-from scipy import linalg
+import scipy.linalg
+if hasattr(scipy.linalg.lapack, 'dtrtri'):
+    dtrtri = scipy.linalg.lapack.dtrtri
+else:
+    dtrtri = scipy.linalg.lapack.flapack.dtrtri
 
 def l1_distances(X, Y=None):
     """
@@ -60,4 +64,4 @@ def chol_inv(L):
     :rtype: inverse of L
 
     """
-    return linalg.lapack.dtrtri(L, lower = True)[0]
+    return dtrtri(L, lower = True)[0]
