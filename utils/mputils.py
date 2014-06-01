@@ -41,7 +41,7 @@ class Queue(object):
         Dequeue and return an object
         """
         if self.empty():
-            raise mp.queues.Empty
+            raise mp.queues.Empty("Cannot dequeue from an empty Queue object")
         
         if self.queue_size > 0:
             self.queue_size -= 1
@@ -172,6 +172,8 @@ class mp_master(object):
         self.deqd_results = []
         
         self.log = log
+        self.nprocs = nprocs
+        
         if self.log:
         
             # redirect stderr to a file
@@ -191,16 +193,13 @@ class mp_master(object):
         
         # if we want a progress bar
         if progress and progressLoaded:
-            bar = initializeProgressBar(njobs, fd=sys.__stderr__)
+            self.bar = initializeProgressBar(njobs, fd=sys.__stderr__)
         else:
-            bar = None
+            self.bar = None
         
         # create an exception event
         self.exception = mp.Event()
         
-        # start a worker for each cpu available
-        print 'creating %d workers' % nprocs
-        self.workers = [ worker(self.tasks, self.results, self.exception, pbar=bar) for i in range(nprocs) ]
     #end __init__
 
     #---------------------------------------------------------------------------
@@ -208,6 +207,10 @@ class mp_master(object):
         """
         Start the workers and do the work
         """
+        # start a worker for each cpu available
+        print 'creating %d workers' % nprocs
+        self.workers = [ worker(self.tasks, self.results, self.exception, pbar=self.bar) for i in range(self.nprocs) ]
+        
         # make sure to catch exceptions
         try: 
             # start the work
@@ -256,7 +259,7 @@ class mp_master(object):
     #end enqueue
     
     #---------------------------------------------------------------------------
-    def more_results():
+    def more_results(self):
         """
         Check if there are any results to dequeue
         """
