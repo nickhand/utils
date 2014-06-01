@@ -2,12 +2,76 @@ import multiprocessing as mp
 import logging, os, sys
 import tempfile, datetime
 from utils import utilities
+
 progressLoaded = True
 try:
     from utils.utilities import initializeProgressBar
-except:
+except ImportError:
     progressLoaded = False
 
+
+
+class Queue(object):
+    """
+    Queue-like class with overflow limits
+    """
+    MAX_QUEUE_SIZE = 30000
+    
+    def __init__(self):
+        
+        self.queue_size = 0
+        
+        self.queue = mp.Queue()
+        self.overflow = []
+        
+    #end __init__
+    
+    #---------------------------------------------------------------------------
+    @property 
+    def size(self):
+        return self.queue_size + self.overflow_size
+        
+    @property
+    def overflow_size(self):
+        return len(self.overflow)
+    
+    #---------------------------------------------------------------------------
+    def get(self):
+        """
+        Dequeue and return an object
+        """
+        if self.empty():
+            raise mp.queues.Empty
+        
+        if self.queue_size > 0:
+            self.queue_size -= 1
+            return self.queue.get()
+        else:
+            return self.overflow.pop()
+    #end get
+    
+    #---------------------------------------------------------------------------
+    def empty(self): 
+        return (self.size == 0)
+    
+    #end empty
+    
+    #---------------------------------------------------------------------------
+    def put(self, val):
+        """
+        Enqueue onto the queue
+        """
+        if self.queue_size + 1 <= Queue.MAX_QUEUE_SIZE:
+            self.queue.put(val)
+            self.queue_size += 1
+        else:
+            self.overflow.append(val)
+    #end put
+    
+    #---------------------------------------------------------------------------
+#endclass Queue
+
+#-------------------------------------------------------------------------------
 class worker(mp.Process):
     """
     Worker class that a dequeues a task from an input queue, perform a specified
@@ -92,14 +156,19 @@ class mp_master(object):
     """
     A class to control a multiprocessing job 
     """
+    
     def __init__(self, nprocs, njobs, progress=True, log=True):
         """
         Initialize the input/output queues and make the workers
         """
         
-        # set up the queues
-        self.results = mp.Queue()
-        self.tasks = mp.Queue()
+        # set up the results queue
+        self.results = Queue()
+        
+        # set up the tasks queue
+        self.tasks = Queue()
+
+        # hold the dequeued results
         self.deqd_results = []
         
         self.log = log
@@ -133,15 +202,7 @@ class mp_master(object):
         print 'creating %d workers' % nprocs
         self.workers = [ worker(self.tasks, self.results, self.exception, pbar=bar) for i in range(nprocs) ]
     #end __init__
-    
-    #---------------------------------------------------------------------------
-    def enqueue(self, task):
-        """
-        Enqueue a task onto the tasks queue
-        """
-        self.tasks.put(task)
-    #end enqueue
-        
+
     #---------------------------------------------------------------------------
     def run(self):
         """
@@ -155,11 +216,11 @@ class mp_master(object):
             
             # add a poison pill for each worker
             for i in range(len(self.workers)):
-                self.tasks.put(None)
+                self.enqueue(None)
                 
             # while processes still alive, dequeue the results and store
             while any([w.is_alive() for w in self.workers]):
-                while not self.results.empty():
+                while self.more_results():
                     self.deqd_results.append(self.results.get())
                 
             # if exception, raise
@@ -185,25 +246,33 @@ class mp_master(object):
             # summary
             self.info()
     #end run
+        
+    #---------------------------------------------------------------------------
+    def enqueue(self, task):
+        """
+        Enqueue a task onto the tasks queue
+        """
+        self.tasks.put(task)
+    #end enqueue
     
-    #---------------------------------------------------------------------------    
+    #---------------------------------------------------------------------------
+    def more_results():
+        """
+        Check if there are any results to dequeue
+        """
+        return (self.results.size > 0)
+    #end more_results
+    
+    #---------------------------------------------------------------------------
     def dequeue(self):
         """
         Dequeue all the results
         """
-        while not self.results.empty():
+        while self.more_results():
             self.deqd_results.append(self.results.get())
                 
         return self.deqd_results
     #end dequeue
-
-    #---------------------------------------------------------------------------
-    def more_results(self):
-        """
-        Return True if there are more results to dequeue
-        """
-        return not self.results.empty()
-    #end more_results
     
     #---------------------------------------------------------------------------
     def info(self):

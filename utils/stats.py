@@ -330,6 +330,8 @@ def compute_null_significance(data, covar_matrix, N_trials=1e6, model=None):
         the probability that random variates have this chi-squared
     sigma : float
         the significance in sigma, assuming gaussian statistics
+    chi2_data : float
+        the chi2 of the data
     """
     nBins = len(data)
     N_trials = int(N_trials)
