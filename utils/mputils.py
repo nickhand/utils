@@ -11,8 +11,30 @@ try:
 except ImportError:
     progressLoaded = False
 
+#-------------------------------------------------------------------------------
+class Counter(object):
+    
+    def __init__(self, start=0):
+        self.lock = mp.Lock()
+        self.value = start
+    
+    def increment(self):
+       
+        self.lock.acquire()
+        try:
+            self.value += 1
+        finally:
+            self.lock.release()
 
+    def decrement(self):
 
+        self.lock.acquire()
+        try:
+            self.value -= 1
+        finally:
+            self.lock.release()
+
+#-------------------------------------------------------------------------------
 class Queue(mpQueue):
     """
     Queue-like class with overflow limits
@@ -23,7 +45,7 @@ class Queue(mpQueue):
         
         super(Queue, self).__init__(*args, **kwargs)
         
-        self.queue_size = 0
+        self.queue_size = Counter()
         self.overflow = []
         
     #end __init__
@@ -46,7 +68,7 @@ class Queue(mpQueue):
             raise multiprocessing.queues.Empty("Cannot dequeue from an empty Queue object")
         
         if self.queue_size > 0:
-            self.queue_size -= 1
+            self.queue_size.decrement()
             return super(Queue, self).get(**kwargs)
         else:
             return self.overflow.pop()
@@ -65,7 +87,7 @@ class Queue(mpQueue):
         """
         if self.queue_size + 1 <= Queue.MAX_QUEUE_SIZE:
             super(Queue, self).put(obj)
-            self.queue_size += 1
+            self.queue_size.increment()
         else:
             self.overflow.append(obj)
     #end put
