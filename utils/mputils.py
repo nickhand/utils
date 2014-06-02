@@ -128,7 +128,7 @@ class worker(multiprocessing.Process):
             
             # dequeue the next task
             next_task = self.task_queue.get()
-            print "task queue size = ", self.task_queue.queue_size.value(), os.getpid()
+            print "task queue size = ", self.task_queue.size, os.getpid()
             
             # task == None means we should exit
             if next_task is None:
@@ -146,7 +146,7 @@ class worker(multiprocessing.Process):
             try:  
                 answer = next_task()
                 self.result_queue.put(answer)
-                print "results queue size = ", self.result_queue.queue_size.value(), os.getpid()
+                print "results queue size = ", self.result_queue.size, os.getpid()
                 
             # set the exception event so main process knows to exit, 
             # and then raise the exception
