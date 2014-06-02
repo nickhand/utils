@@ -41,8 +41,9 @@ class Queue(mpQueue):
         
         super(Queue, self).__init__(*args, **kwargs)
         
+        self.manager = multiprocessing.Manager()
         self.queue_size = Counter()
-        self.overflow = []
+        self.overflow = self.manager.list()
         
     #end __init__
     
@@ -82,13 +83,14 @@ class Queue(mpQueue):
         Enqueue onto the queue
         """
         print "queue size 1 = ", self.queue_size.value()
-        if self.queue_size.value() + 1 <= Queue.MAX_QUEUE_SIZE:
-            super(Queue, self).put(obj, **kwargs)
+        #if self.queue_size.value() + 1 <= Queue.MAX_QUEUE_SIZE:
+        #    super(Queue, self).put(obj, **kwargs)
             
-            self.queue_size.increment()
-        else:
-            self.overflow.append(obj)
+        #    self.queue_size.increment()
+        #else:
+        self.overflow.append(obj)
         print "queue size 2 = ", self.queue_size.value()
+        print "overflow size 3 = ", len(self.overflow)
     #end put
     
     #---------------------------------------------------------------------------
