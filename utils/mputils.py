@@ -217,11 +217,7 @@ class mp_master(object):
         
         # create an exception event
         self.exception = multiprocessing.Event()
-        
-        # start a worker for each cpu available
-        print 'creating %d workers' %nprocs
-        self.workers = [ worker(self.tasks, self.results, self.exception, pbar=bar) for i in range(nprocs) ]
-        
+                
     #end __init__
 
     #---------------------------------------------------------------------------
@@ -229,6 +225,9 @@ class mp_master(object):
         """
         Start the workers and do the work
         """
+        # start a worker for each cpu available
+        print '  creating %d workers...' %nprocs
+        self.workers = [ worker(self.tasks, self.results, self.exception, pbar=bar) for i in range(nprocs) ]
         
         # make sure to catch exceptions
         try: 
