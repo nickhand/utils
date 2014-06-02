@@ -1,7 +1,9 @@
 import multiprocessing
+from multiprocessing.queues import Queue as mpQueue
 import logging, os, sys
 import tempfile, datetime
 from utils import utilities
+import os
 
 progressLoaded = True
 try:
@@ -11,7 +13,7 @@ except ImportError:
 
 
 
-class Queue(multiprocessing.queues.Queue):
+class Queue(mpQueue):
     """
     Queue-like class with overflow limits
     """
@@ -108,7 +110,7 @@ class worker(multiprocessing.Process):
             
             # dequeue the next task
             next_task = self.task_queue.get()
-            print "task queue size = ", self.task_queue.size, next_task.num
+            print "task queue size = ", self.task_queue.size, next_task.num, os.getpid()
             
             # task == None means we should exit
             if next_task is None:
@@ -271,7 +273,7 @@ class mp_master(object):
         """
         Dequeue all the results
         """
-        print "results queue size = ", self.results.size
+        print "results queue size = ", self.results.size, os.getpid()
         
         while self.more_results():
             self.deqd_results.append(self.results.get())
