@@ -109,7 +109,7 @@ class worker(mp.Process):
             
             # dequeue the next task
             next_task = self.task_queue.get()
-            print "task queue size = ", self.task_queue.size
+            print "task queue size = ", self.task_queue.size, next_task.num
             
             # task == None means we should exit
             if next_task is None:
