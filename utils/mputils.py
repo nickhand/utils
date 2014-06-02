@@ -3,7 +3,6 @@ from multiprocessing.queues import Queue as mpQueue
 import logging, os, sys
 import tempfile, datetime
 from utils import utilities
-import os
 
 progressLoaded = True
 try:
@@ -82,14 +81,11 @@ class Queue(mpQueue):
         """
         Enqueue onto the queue
         """
-        print "queue size 1 = ", self.queue_size.value()
         if self.queue_size.value() + 1 <= Queue.MAX_QUEUE_SIZE:
             super(Queue, self).put(obj, **kwargs)
             self.queue_size.increment()
         else:
             self.overflow.append(obj)
-        print "queue size 2 = ", self.queue_size.value()
-        print "overflow size 3 = ", len(self.overflow)
     #end put
     
     #---------------------------------------------------------------------------
@@ -130,16 +126,12 @@ class worker(multiprocessing.Process):
         # pull tasks until there are none left and we don't exit
         while not self.exception.is_set():
             
-            print "task size = ", self.task_queue.size
-            if self.task_queue.size == 0:
+            # break if the task queue is empty
+            if self.task_queue.empty():
                 break
             
             # dequeue the next task
             next_task = self.task_queue.get()
-            
-            # task == None means we should exit
-            # if next_task is None:
-            #     break
             
             # try to update the progress bar
             if self.pbar is not None:
@@ -153,7 +145,6 @@ class worker(multiprocessing.Process):
             try:  
                 answer = next_task()
                 self.result_queue.put(answer + (next_task.num,))
-                print "results queue size = ", self.result_queue.queue_size.value(), os.getpid()
                 
             # set the exception event so main process knows to exit, 
             # and then raise the exception
@@ -250,9 +241,6 @@ class mp_master(object):
                 while self.more_results():
                     self.deqd_results.append(self.results.get())
                 
-            print "len of deqd results = ", len(self.deqd_results)
-            print "len of results = ", self.results.qsize()
-            
             # if exception, raise
             if self.exception.is_set():
                 raise Exception("Exception event in multiprocessing")
