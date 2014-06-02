@@ -33,6 +33,14 @@ class Counter(object):
             self.value -= 1
         finally:
             self.lock.release()
+            
+    def value(self):
+
+        self.lock.acquire()
+        try:
+            return self.value
+        finally:
+            self.lock.release()
 
 #-------------------------------------------------------------------------------
 class Queue(mpQueue):
@@ -53,7 +61,7 @@ class Queue(mpQueue):
     #---------------------------------------------------------------------------
     @property 
     def size(self):
-        return self.queue_size + self.overflow_size
+        return self.queue_size.value() + self.overflow_size
         
     @property
     def overflow_size(self):
@@ -67,7 +75,7 @@ class Queue(mpQueue):
         if self.empty():
             raise multiprocessing.queues.Empty("Cannot dequeue from an empty Queue object")
         
-        if self.queue_size > 0:
+        if self.queue_size.value() > 0:
             self.queue_size.decrement()
             return super(Queue, self).get(**kwargs)
         else:
@@ -85,7 +93,7 @@ class Queue(mpQueue):
         """
         Enqueue onto the queue
         """
-        if self.queue_size + 1 <= Queue.MAX_QUEUE_SIZE:
+        if self.queue_size.value() + 1 <= Queue.MAX_QUEUE_SIZE:
             super(Queue, self).put(obj)
             self.queue_size.increment()
         else:
