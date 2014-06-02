@@ -227,7 +227,7 @@ class mp_master(object):
         Start the workers and do the work
         """
         # start a worker for each cpu available
-        print '  creating %d workers...' %self.nprocs
+        print '   creating %d workers...' %self.nprocs
         self.workers = [ worker(self.tasks, self.results, self.exception, pbar=self.bar) for i in range(self.nprocs) ]
         
         # make sure to catch exceptions
