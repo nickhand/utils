@@ -109,6 +109,7 @@ class worker(mp.Process):
             
             # dequeue the next task
             next_task = self.task_queue.get()
+            print "task queue size = ", self.task_queue.size
             
             # task == None means we should exit
             if next_task is None:
@@ -123,16 +124,16 @@ class worker(mp.Process):
                     raise Exception("Exception event in multiprocessing")
                     
             # try to do the work
-            #try:  
-            answer = next_task()
-            print answer
-            self.result_queue.put(answer)
+            try:  
+                answer = next_task()
+                self.result_queue.put(answer)
+                print "results queue size = ", self.result_queue.size
                 
             # set the exception event so main process knows to exit, 
             # and then raise the exception
-            #except:
-            #    self.exception.set()
-            #    raise Exception("Error trying to perform task.")
+            except:
+                self.exception.set()
+                raise Exception("Error trying to perform task.")
     #end run
 #endclass worker    
 
