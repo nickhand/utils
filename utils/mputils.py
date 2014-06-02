@@ -15,7 +15,7 @@ except ImportError:
 class Counter(object):
     
     def __init__(self, start=0):
-        self.lock = mp.Lock()
+        self.lock = multiprocessing.Lock()
         self.value = start
     
     def increment(self):
