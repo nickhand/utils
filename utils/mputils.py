@@ -247,8 +247,8 @@ class mp_master(object):
                 w.start()
             
             # add a poison pill for each worker
-            for i in range(len(self.workers)):
-                self.enqueue(None)
+            #for i in range(len(self.workers)):
+            #    self.enqueue(None)
                 
             # while processes still alive, dequeue the results and store
             while any([w.is_alive() for w in self.workers]):
