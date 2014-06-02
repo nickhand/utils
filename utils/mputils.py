@@ -11,17 +11,17 @@ except ImportError:
 
 
 
-class Queue(object):
+class Queue(mp.queues.Queue):
     """
     Queue-like class with overflow limits
     """
     MAX_QUEUE_SIZE = 30000
     
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        
+        super(Queue, self).__init__(*args, **kwargs)
         
         self.queue_size = 0
-        
-        self.queue = mp.Queue()
         self.overflow = []
         
     #end __init__
@@ -36,7 +36,7 @@ class Queue(object):
         return len(self.overflow)
     
     #---------------------------------------------------------------------------
-    def get(self):
+    def get(self, **kwargs):
         """
         Dequeue and return an object
         """
@@ -45,7 +45,7 @@ class Queue(object):
         
         if self.queue_size > 0:
             self.queue_size -= 1
-            return self.queue.get()
+            return super(Queue, self).get(**kwargs)
         else:
             return self.overflow.pop()
     #end get
@@ -57,15 +57,15 @@ class Queue(object):
     #end empty
     
     #---------------------------------------------------------------------------
-    def put(self, val):
+    def put(self, obj, **kwargs):
         """
         Enqueue onto the queue
         """
         if self.queue_size + 1 <= Queue.MAX_QUEUE_SIZE:
-            self.queue.put(val)
+            super(Queue, self).put(obj)
             self.queue_size += 1
         else:
-            self.overflow.append(val)
+            self.overflow.append(obj)
     #end put
     
     #---------------------------------------------------------------------------
@@ -90,7 +90,6 @@ class worker(mp.Process):
         
         # handle the progress bar
         if pbar is not None:
-            
             self.pbar = pbar
         else:
             self.pbar = None
