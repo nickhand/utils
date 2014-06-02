@@ -16,13 +16,13 @@ class Counter(object):
     
     def __init__(self, start=0):
         self.lock = multiprocessing.Lock()
-        self.value = start
+        self.val = start
     
     def increment(self):
        
         self.lock.acquire()
         try:
-            self.value += 1
+            self.val += 1
         finally:
             self.lock.release()
 
@@ -30,7 +30,7 @@ class Counter(object):
 
         self.lock.acquire()
         try:
-            self.value -= 1
+            self.val -= 1
         finally:
             self.lock.release()
             
@@ -38,7 +38,7 @@ class Counter(object):
 
         self.lock.acquire()
         try:
-            return self.value
+            return self.val
         finally:
             self.lock.release()
 
