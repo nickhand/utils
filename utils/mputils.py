@@ -148,7 +148,7 @@ class worker(multiprocessing.Process):
             # try to do the work
             try:  
                 answer = next_task()
-                self.result_queue.put(answer)
+                self.result_queue.put(answer + (next_task.num,))
                 print "results queue size = ", self.result_queue.queue_size.value(), os.getpid()
                 
             # set the exception event so main process knows to exit, 
