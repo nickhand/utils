@@ -1,4 +1,4 @@
-import multiprocessing as mp
+import multiprocessing
 import logging, os, sys
 import tempfile, datetime
 from utils import utilities
@@ -11,7 +11,7 @@ except ImportError:
 
 
 
-class Queue(mp.queues.Queue):
+class Queue(multiprocessing.queues.Queue):
     """
     Queue-like class with overflow limits
     """
@@ -41,7 +41,7 @@ class Queue(mp.queues.Queue):
         Dequeue and return an object
         """
         if self.empty():
-            raise mp.queues.Empty("Cannot dequeue from an empty Queue object")
+            raise multiprocessing.queues.Empty("Cannot dequeue from an empty Queue object")
         
         if self.queue_size > 0:
             self.queue_size -= 1
@@ -72,7 +72,7 @@ class Queue(mp.queues.Queue):
 #endclass Queue
 
 #-------------------------------------------------------------------------------
-class worker(mp.Process):
+class worker(multiprocessing.Process):
     """
     Worker class that a dequeues a task from an input queue, perform a specified
     computation, and store the results until the input queue is empty
@@ -81,7 +81,7 @@ class worker(mp.Process):
     def __init__(self, task_queue, result_queue, except_event, pbar=None):
         
         # initialize a new Process for each worker
-        mp.Process.__init__(self)
+        multiprocessing.Process.__init__(self)
         
         
         # save the task and results queue
@@ -187,7 +187,7 @@ class mp_master(object):
             sys.stdout = self.stdout
         
             # set up the logger to log to sys.stderr
-            self.logger = mp.log_to_stderr()
+            self.logger = multiprocessing.log_to_stderr()
             self.logger.setLevel(logging.INFO)
         
         # if we want a progress bar
@@ -197,7 +197,7 @@ class mp_master(object):
             bar = None
         
         # create an exception event
-        self.exception = mp.Event()
+        self.exception = multiprocessing.Event()
         
         # start a worker for each cpu available
         print 'creating %d workers' %nprocs
