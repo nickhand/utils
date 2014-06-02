@@ -83,12 +83,11 @@ class Queue(mpQueue):
         Enqueue onto the queue
         """
         print "queue size 1 = ", self.queue_size.value()
-        #if self.queue_size.value() + 1 <= Queue.MAX_QUEUE_SIZE:
-        #    super(Queue, self).put(obj, **kwargs)
-            
-        #    self.queue_size.increment()
-        #else:
-        self.overflow.append(obj)
+        if self.queue_size.value() + 1 <= Queue.MAX_QUEUE_SIZE:
+            super(Queue, self).put(obj, **kwargs)
+            self.queue_size.increment()
+        else:
+            self.overflow.append(obj)
         print "queue size 2 = ", self.queue_size.value()
         print "overflow size 3 = ", len(self.overflow)
     #end put
@@ -245,11 +244,7 @@ class mp_master(object):
             # start the work
             for w in self.workers:
                 w.start()
-            
-            # add a poison pill for each worker
-            #for i in range(len(self.workers)):
-            #    self.enqueue(None)
-                
+                        
             # while processes still alive, dequeue the results and store
             while any([w.is_alive() for w in self.workers]):
                 while self.more_results():
