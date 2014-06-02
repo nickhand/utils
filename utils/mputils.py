@@ -131,13 +131,16 @@ class worker(multiprocessing.Process):
         # pull tasks until there are none left and we don't exit
         while not self.exception.is_set():
             
+            print "task size = ", self.task_queue.size
+            if self.task_queue.size == 0:
+                break
+            
             # dequeue the next task
             next_task = self.task_queue.get()
-            print "task queue size = ", self.task_queue.size, os.getpid()
             
             # task == None means we should exit
-            if next_task is None:
-                break
+            # if next_task is None:
+            #     break
             
             # try to update the progress bar
             if self.pbar is not None:
