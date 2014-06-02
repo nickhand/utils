@@ -82,7 +82,7 @@ class Queue(mpQueue):
         Enqueue onto the queue
         """
         if self.queue_size.value() + 1 <= Queue.MAX_QUEUE_SIZE:
-            super(Queue, self).put(obj)
+            super(Queue, self).put(obj, **kwargs)
             self.queue_size.increment()
         else:
             self.overflow.append(obj)
@@ -146,7 +146,7 @@ class worker(multiprocessing.Process):
             try:  
                 answer = next_task()
                 self.result_queue.put(answer)
-                print "results queue size = ", self.result_queue.size, os.getpid()
+                print "results queue size = ", self.result_queue.queue_size.value(), os.getpid()
                 
             # set the exception event so main process knows to exit, 
             # and then raise the exception
