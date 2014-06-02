@@ -230,7 +230,7 @@ class mp_master(object):
                     self.deqd_results.append(self.results.get())
                 
             print "len of deqd results = ", len(self.deqd_results)
-            print "len of results = ", self.results.qsize
+            print "len of results = ", self.results.qsize()
             
             # if exception, raise
             if self.exception.is_set():
