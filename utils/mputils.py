@@ -171,9 +171,7 @@ class mp_master(object):
         # hold the dequeued results
         self.deqd_results = []
         
-        self.log = log
-        self.nprocs = nprocs
-        
+        self.log = log        
         if self.log:
         
             # redirect stderr to a file
@@ -193,12 +191,16 @@ class mp_master(object):
         
         # if we want a progress bar
         if progress and progressLoaded:
-            self.bar = initializeProgressBar(njobs, fd=sys.__stderr__)
+            bar = initializeProgressBar(njobs, fd=sys.__stderr__)
         else:
-            self.bar = None
+            bar = None
         
         # create an exception event
         self.exception = mp.Event()
+        
+        # start a worker for each cpu available
+        print 'creating %d workers' %nprocs
+        self.workers = [ worker(self.tasks, self.results, self.exception, pbar=bar) for i in range(nprocs) ]
         
     #end __init__
 
@@ -207,9 +209,6 @@ class mp_master(object):
         """
         Start the workers and do the work
         """
-        # start a worker for each cpu available
-        print 'creating %d workers' % nprocs
-        self.workers = [ worker(self.tasks, self.results, self.exception, pbar=self.bar) for i in range(self.nprocs) ]
         
         # make sure to catch exceptions
         try: 
