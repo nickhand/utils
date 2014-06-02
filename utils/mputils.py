@@ -124,7 +124,6 @@ class worker(mp.Process):
                     
             # try to do the work
             try:  
-                print "HEY"
                 answer = next_task()
                 print answer
                 self.result_queue.put(answer)
