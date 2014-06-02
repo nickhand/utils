@@ -120,7 +120,7 @@ class worker(mp.Process):
                     self.pbar.update(next_task.num+1)
                 except:
                     self.exception.set()
-                    raise
+                    raise Exception("Exception event in multiprocessing")
                     
             # try to do the work
             try:  
@@ -130,7 +130,7 @@ class worker(mp.Process):
             # and then raise the exception
             except:
                 self.exception.set()
-                raise
+                raise Exception("Exception event in multiprocessing")
     #end run
 #endclass worker    
 
@@ -227,14 +227,14 @@ class mp_master(object):
                 
             # if exception, raise
             if self.exception.is_set():
-                raise
+                raise Exception("Exception event in multiprocessing")
         except:
             
             # close all the workers gracefully
             for w in self.workers:
                w.terminate()
                w.join()
-            raise
+            raise Exception("Exception event in multiprocessing")
              
         finally: 
             
