@@ -123,16 +123,16 @@ class worker(mp.Process):
                     raise Exception("Exception event in multiprocessing")
                     
             # try to do the work
-            try:  
-                answer = next_task()
-                print answer
-                self.result_queue.put(answer)
+            #try:  
+            answer = next_task()
+            print answer
+            self.result_queue.put(answer)
                 
             # set the exception event so main process knows to exit, 
             # and then raise the exception
-            except:
-                self.exception.set()
-                raise Exception("Error trying to perform task.")
+            #except:
+            #    self.exception.set()
+            #    raise Exception("Error trying to perform task.")
     #end run
 #endclass worker    
 
