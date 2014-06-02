@@ -16,7 +16,7 @@ class Counter(object):
     
     def __init__(self, init_val=0):
         self.lock = multiprocessing.Lock()
-        self.val = mp.Value('i', init_val)
+        self.val = multiprocessing.Value('i', init_val)
     
     def increment(self):
         with self.lock:
