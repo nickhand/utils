@@ -14,33 +14,21 @@ except ImportError:
 #-------------------------------------------------------------------------------
 class Counter(object):
     
-    def __init__(self, start=0):
+    def __init__(self, init_val=0):
         self.lock = multiprocessing.Lock()
-        self.val = start
+        self.val = mp.Value('i', init_val)
     
     def increment(self):
-       
-        self.lock.acquire()
-        try:
-            self.val += 1
-        finally:
-            self.lock.release()
-
+        with self.lock:
+            self.val.value += 1
+    
     def decrement(self):
+        with self.lock:
+            self.val.value -= 1
 
-        self.lock.acquire()
-        try:
-            self.val -= 1
-        finally:
-            self.lock.release()
-            
     def value(self):
-
-        self.lock.acquire()
-        try:
-            return self.val
-        finally:
-            self.lock.release()
+        with self.lock:
+            return self.val.value
 
 #-------------------------------------------------------------------------------
 class Queue(mpQueue):
@@ -140,7 +128,7 @@ class worker(multiprocessing.Process):
             
             # dequeue the next task
             next_task = self.task_queue.get()
-            print "task queue size = ", self.task_queue.size, os.getpid()
+            print "task queue size = ", self.task_queue.queue_size.value(), os.getpid()
             
             # task == None means we should exit
             if next_task is None:
@@ -158,7 +146,7 @@ class worker(multiprocessing.Process):
             try:  
                 answer = next_task()
                 self.result_queue.put(answer)
-                print "results queue size = ", self.result_queue.size, os.getpid()
+                print "results queue size = ", self.result_queue.queue_size.value(), os.getpid()
                 
             # set the exception event so main process knows to exit, 
             # and then raise the exception
