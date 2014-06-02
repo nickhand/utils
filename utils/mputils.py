@@ -83,6 +83,8 @@ class Queue(mpQueue):
         """
         if self.queue_size.value() + 1 <= Queue.MAX_QUEUE_SIZE:
             super(Queue, self).put(obj, **kwargs)
+            
+            print "queue size = ", self.queue_size.value()
             self.queue_size.increment()
         else:
             self.overflow.append(obj)
