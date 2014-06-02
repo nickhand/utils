@@ -190,6 +190,7 @@ class mp_master(object):
 
         # hold the dequeued results
         self.deqd_results = []
+        self.nprocs = nprocs
         
         self.log = log        
         if self.log:
@@ -211,9 +212,9 @@ class mp_master(object):
         
         # if we want a progress bar
         if progress and progressLoaded:
-            bar = initializeProgressBar(njobs, fd=sys.__stderr__)
+            self.bar = initializeProgressBar(njobs, fd=sys.__stderr__)
         else:
-            bar = None
+            self.bar = None
         
         # create an exception event
         self.exception = multiprocessing.Event()
@@ -226,8 +227,8 @@ class mp_master(object):
         Start the workers and do the work
         """
         # start a worker for each cpu available
-        print '  creating %d workers...' %nprocs
-        self.workers = [ worker(self.tasks, self.results, self.exception, pbar=bar) for i in range(nprocs) ]
+        print '  creating %d workers...' %self.nprocs
+        self.workers = [ worker(self.tasks, self.results, self.exception, pbar=self.bar) for i in range(self.nprocs) ]
         
         # make sure to catch exceptions
         try: 
