@@ -127,7 +127,6 @@ class worker(mp.Process):
             try:  
                 answer = next_task()
                 self.result_queue.put(answer)
-                print "results queue size = ", self.result_queue.size
                 
             # set the exception event so main process knows to exit, 
             # and then raise the exception
@@ -273,6 +272,8 @@ class mp_master(object):
         """
         Dequeue all the results
         """
+        print "results queue size = ", self.result_queue.size
+        
         while self.more_results():
             self.deqd_results.append(self.results.get())
                 
