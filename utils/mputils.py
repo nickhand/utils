@@ -272,7 +272,7 @@ class mp_master(object):
         """
         Dequeue all the results
         """
-        print "results queue size = ", self.result_queue.size
+        print "results queue size = ", self.results.size
         
         while self.more_results():
             self.deqd_results.append(self.results.get())
