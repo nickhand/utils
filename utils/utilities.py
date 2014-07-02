@@ -9,7 +9,127 @@ from utils import pytools
 import collections
 import re
 import ast
+import argparse
 
+#-------------------------------------------------------------------------------
+def add_plotting_arguments(parser):
+    """
+    Add plotting arguments to the input `argparse.AgumentParser` instance
+    """
+    def two_floats(value):
+        values = value.split()
+        if len(values) != 2:
+            raise argparse.ArgumentError
+        values = map(float, values)
+        return values
+        
+    # options to make the plot look nice
+    h = "line labels if we are plotting more than one mean"
+    parser.add_argument("--labels", type=str, nargs='*', help=h)
+    h = "the title to add to the plot"
+    parser.add_argument("--title", type=str, help=h)
+    h = 'the location of the legend'
+    parser.add_argument("--legend-loc", type=str, default="upper right", help=h)
+    h = 'the number of columns in the legend'
+    parser.add_argument("--ncol", type=int, help=h)
+    h = 'the fontsize of the legend'
+    parser.add_argument('--legend-size', help=h)
+    h = 'the label of the x axis'
+    parser.add_argument('--xlabel', type=str, help=h)
+    h = 'the label of the y axis'
+    parser.add_argument('--ylabel', type=str, help=h)
+    h = 'the fontsize of the axes labels'
+    parser.add_argument('--lab-fs', type=float, default=16, help=h)
+    h = 'the fontsize of the title'
+    parser.add_argument('--title-size', type=float, default=13, help=h)
+    h = 'the transparency of the lines'
+    parser.add_argument('--alpha', type=float, default=0.6, help=h)
+    h = 'the width of the lines'
+    parser.add_argument('--lw', type=float, default=2, help=h)
+    h = 'whether to draw a line at y=0'
+    parser.add_argument('--zero-line', action='store_true', default=False, help=h)
+    
+    # options to changes the axes limits and scales
+    h = 'the limits of the x axis'
+    parser.add_argument('--xlim', type=two_floats, help=h)
+    h = 'the limits of the y axis'
+    parser.add_argument('--ylim', type=two_floats, help=h)
+    h = 'are the axes labels raw input string'
+    parser.add_argument('--raw', action='store_true', default=False, help=h)
+    h = 'make the x axis log'
+    parser.add_argument('--xlog', action='store_true', default=False, help=h)
+    h = 'make the y axis log'
+    parser.add_argument('--ylog', action='store_true', default=False, help=h)
+#end add_plotting_arguments
+
+#-------------------------------------------------------------------------------
+def apply_plotting_arguments(ax, legend_loc=None, ncol=1, legend_size=16, 
+                             title=None, xlim=None, ylim=None, **kwargs):
+    """
+    Apply the plotting arguments
+    """
+    if legend_loc is not None:
+        ax.legend(loc=legend_loc, ncol=ncol, prop={'size':legend_size}, numpoints=1)
+    ax.minorticks_on()
+    ax.tick_params(which='major', width=2, length=8)
+    ax.tick_params(which='minor', width=1, length=4)
+          
+    if title is not None:
+        ax.set_title(title, fontsize=args.title_size)
+        
+    # change the axis limits
+    if xlim is not None:
+        ax.set_xlim(*xlim)
+    if ylim is not None:
+        ax.set_ylim(*ylim)
+#end apply_plotting_arguments
+ 
+#-------------------------------------------------------------------------------
+def paren_matcher(string, opens, closes):
+    """
+    Yield (in order) the parts of a string that are contained
+    in matching parentheses.  That is, upon encounting an "open
+    parenthesis" character (one in <opens>), we require a
+    corresponding "close parenthesis" character (the corresponding
+    one from <closes>) to close it.
+
+    If there are embedded <open>s they increment the count and
+    also require corresponding <close>s.  If an <open> is closed
+    by the wrong <close>, we raise a ValueError.
+    """
+    stack = []
+    if len(opens) != len(closes):
+        raise TypeError("opens and closes must have the same length")
+    # could make sure that no closes[i] is present in opens, but
+    # won't bother here...
+
+    result = []
+    for char in string:
+        # If it's an open parenthesis, push corresponding closer onto stack.
+        pos = opens.find(char)
+        if pos >= 0:
+            if result and not stack: # yield accumulated pre-paren stuff
+               yield ''.join(result)
+               result = []
+            result.append(char)
+            stack.append(closes[pos])
+            continue
+        result.append(char)
+        # If it's a close parenthesis, match it up.
+        pos = closes.find(char)
+        if pos >= 0:
+            if not stack or stack[-1] != char:
+                raise ValueError("unbalanced parentheses: %s" %
+                    ''.join(result))
+            stack.pop()
+            if not stack: # final paren closed
+                yield ''.join(result)
+                result = []
+    if stack:
+        raise ValueError("unclosed parentheses: %s" % ''.join(result))
+    if result:
+        yield ''.join(result)
+        
 #-------------------------------------------------------------------------------
 def get_timestamp(fmt_str="%m-%d-%y_%H-%M-%S"):
     """
