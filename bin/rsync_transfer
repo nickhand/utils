@@ -1,0 +1,60 @@
+#!/usr/bin/env python
+"""
+ transfer.py
+ transfer the logs to the astro server using rsync
+ 
+ author: Nick Hand
+ contact: nhand@berkeley.edu
+ creation date: 02/06/2014
+"""
+import os
+import argparse
+
+#-------------------------------------------------------------------------------
+def main(args):
+    
+    arg1 = "n" if args.dry else ""
+    arg2 = "" if args.no_delete else "--delete"
+    cmd_base = "rsync -e ssh -avzl%s --progress %s --exclude='.*'" %(arg1, arg2)
+    
+    dir2 = ""
+    dir1 = "./"
+    if args.dir is not None:
+        abspath = os.path.abspath(args.dir)
+        path, dir2 = os.path.split(abspath)
+        
+        dir1 = "%s/" %abspath
+        dir2 = "%s/" %dir2
+        
+    if args.dest == 'server':
+        cmd_dirs = "%s nhand@beast:/o/nhand/research/logs/%s " %(dir1, dir2)
+    else:
+        cmd_dirs = "nhand@beast:/o/nhand/research/logs/%s  %s" %(dir2, dir1)
+    
+    cmd = "%s %s" %(cmd_base, cmd_dirs)
+    os.system(cmd)
+    
+#end main
+
+#-------------------------------------------------------------------------------
+if __name__ == '__main__':
+    
+    # parse the input arguments
+    d = "transfer the logs to the astro server using rsync"
+    parser = argparse.ArgumentParser(description=d)
+    
+    h = "only rsync this directory"
+    parser.add_argument('--dir', type=str, help=h) 
+    
+    h = "do not delete on the receiving end"
+    parser.add_argument("--no-delete", action="store_true", default=False, help=h)
+    
+    h = "do a dry run"
+    parser.add_argument("--dry", action="store_true", default=False, help=h)
+    
+    h = "the destination to copy to; choices are ['ripken', 'server]; default is 'server'"
+    parser.add_argument("--dest", type=str, default='server', choices=['ripken', 'server'], help=h)
+    
+    args = parser.parse_args()
+    main(args)
+    

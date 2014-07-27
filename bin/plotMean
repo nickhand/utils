@@ -1,171 +1,84 @@
 #!/usr/bin/env python
 import numpy as np
 import argparse
-from glob import glob
-import pylab as plt
-from catIO import catalog
-from utils.utilities import weighted_mean_arrays as wma
+import plotify as pfy
 
-def two_floats(value):
-    values = value.split()
-    if len(values) != 2:
-        raise argparse.ArgumentError
-    values = map(float, values)
-    return values
-
-def plotMean(args):
+def int_or_str(value):
+    """
+    Int object if possible, else str
+    """
+    try:
+        value = int(value)
+    except:
+        value = str(value)
+    return value
+    
+def plot_mean(args, parser):
     """
     Read in data files and plot the mean of the results, either weighted 
     or unweighted
     """
+    save_name = args.get('savefig', None)
+    fig, ax = pfy.plot_data(**args)
     
-    nPatterns = len(args.patterns)
+    # apply the extra plotting options
+    master.apply_extra_options(ax)
     
-    # loop over all patterns
-    for i, pattern in enumerate(args.patterns):
-        
-        # get the files corresponding to the pattern
-        files = glob(pattern)
-        
-        xvar_tot = []
-        yvar_tot = []
-        yerr_tot = []
-        
-        # read in the data
-        for f in files:
-            if args.x_name.isdigit():
-                xvar, yvar, yerr = np.loadtxt(f, usecols=(int(args.x_name), int(args.y_name), int(args.yerr_name)), unpack=True)
-            else:
-                cat = catalog.catalog(catFile=f)
-                xvar = cat.arrayFromCol(args.x_name)
-                yvar = cat.arrayFromCol(args.y_name)
-                yerr = cat.arrayFromCol(args.yerr_name)
-                
-            xvar_tot.append(xvar)
-            yvar_tot.append(yvar)
-            yerr_tot.append(yerr)
-          
-        # distinguish between one file and more
-        if len(files) > 1:
-            if not args.unweighted:
-                y_mean, yerr_mean = wma(yvar_tot, yerr_tot)
-            else:
-                y_mean = np.mean(yvar_tot, axis=0)
-                yerr_mean = np.std(yvar_tot, axis=0)
-            x_mean = np.mean(xvar_tot, axis=0)
-        else:
-            x_mean, y_mean, yerr_mean = xvar_tot[0], yvar_tot[0], yerr_tot[0]
-        
-        # plot, either with line labels or not
-        if args.labels is not None:
-            lines, caps, bars = plt.errorbar(x_mean, y_mean, yerr_mean, alpha=args.alpha, lw=args.lw,
-                            elinewidth=args.lw, label=args.labels[i], linestyle='', marker='+')
-        else:
-            lines, caps, bars = plt.errorbar(x_mean, y_mean, yerr_mean, alpha=args.alpha, lw=args.lw,
-                            elinewidth=args.lw, linestyle='', marker='+')
-        
-        # set the alpha of the errorbar
-        for c in caps:
-            c.set_alpha(args.alpha)
-        for b in bars:
-            b.set_alpha(args.alpha)
-        
-    
-    # make the legend
-    if args.labels is not None:
-        plt.legend(loc=args.legend_loc, numpoints=1)
-    
-    # add the axis labels
-    if args.xlabel is not None:
-        if args.raw:
-            lab = eval("r'"+args.xlabel+"'")
-            plt.xlabel(lab, fontsize=args.lab_fs)
-        else:
-            plt.xlabel(args.xlabel, fontsize=args.lab_fs)
-            
-    if args.ylabel is not None:
-        if args.raw:
-            lab = eval("r'"+args.ylabel+"'")
-            plt.ylabel(lab, fontsize=args.lab_fs)
-        else:
-            plt.ylabel(args.ylabel, fontsize=args.lab_fs)
-     
-    # change the axis scales
-    if args.ylog:
-        plt.gca().set_yscale('log')
-    if args.xlog:
-        plt.gca().set_xscale('log')   
-    if args.title is not None:
-        plt.gca().set_title(args.title, fontsize=args.title_fs)
-        
-    # change the axis limits
-    if args.xlim is not None:
-        plt.gca().set_xlim(*args.xlim)
-    if args.ylim is not None:
-        plt.gca().set_ylim(*args.ylim)
-    
-    # add a line at y=0
-    if args.zero_line:
-        plt.axhline(y=0, c='k', ls='--', lw=args.lw)
-    
-    plt.show()
-#end plotMean
-    
+    # add the legend
+    if args.get('labels') is not None:
+        ax.legend()
+
+    if save_name is not None:
+        fig.savefig(save_name)
+    pfy.show()
+
+#end plot_mean  
+
 #-------------------------------------------------------------------------------
 if __name__ == "__main__":
     
-    parser = argparse.ArgumentParser(description="plot mean results")
+    # initialize the plottingparser
+    master = pfy.PlottingParser("plot mean results")
 
+    # get the parser
+    parser = master.get_parser()
+    
     # the only positional argument
     h = "the pattern(s) to match files on"
     parser.add_argument("patterns", type=str, nargs='+', help=h)
     
-    # whether to do a weighted or unweighted mean
-    h = 'whether to do a weighted mean of results'
-    parser.add_argument('--unweighted', action='store_true', default=False, help=h)
-    
-    # options to read in the data
+    # these are optional arguments
     h = "the name of the x variable to plot"
-    parser.add_argument("--x-name", default='0', type=str, help=h)
+    parser.add_argument("--x_name", default=0, type=int_or_str, help=h)
+    
     h = "the name of the y variable to plot"
-    parser.add_argument("--y-name",  default='1', type=str, help=h)
+    parser.add_argument("--y_name",  default=1, type=int_or_str, help=h)
+    
     h = "the name of the error on the y variable"
-    parser.add_argument("--yerr-name", default='2', type=str, help=h)
+    parser.add_argument("--yerr_name", default=2, type=int_or_str, help=h)
     
-    # options to make the plot look nice
-    h = "line labels if we are plotting more than one mean"
-    parser.add_argument("--labels", type=str, nargs='*', help=h)
-    h = "the title to add to the plot"
-    parser.add_argument("--title", type=str, help=h)
-    h = 'the location of the legend'
-    parser.add_argument("--legend-loc", type=str, default="upper right", help=h)
-    h = 'the label of the x axis'
-    parser.add_argument('--xlabel', type=str, help=h)
-    h = 'the label of the y axis'
-    parser.add_argument('--ylabel', type=str, help=h)
-    h = 'the fontsize of the axes labels'
-    parser.add_argument('--lab-fs', type=float, default=16, help=h)
-    h = 'the fontsize of the title'
-    parser.add_argument('--title-fs', type=float, default=13, help=h)
-    h = 'the transparency of the lines'
-    parser.add_argument('--alpha', type=float, default=0.6, help=h)
-    h = 'the width of the lines'
-    parser.add_argument('--lw', type=float, default=2, help=h)
-    h = 'whether to draw a line at y=0'
-    parser.add_argument('--zero-line', action='store_true', default=False, help=h)
+    h = 'whether to do a weighted mean of results'
+    parser.add_argument('--weighted', action='store_true', default=False, help=h)
     
-    # options to changes the axes limits and scales
-    h = 'the limits of the x axis'
-    parser.add_argument('--xlim', type=float, nargs=2, help=h)
-    h = 'the limits of the y axis'
-    parser.add_argument('--ylim', type=two_floats, help=h)
-    h = 'are the axes labels raw input string'
-    parser.add_argument('--raw', action='store_true', default=False, help=h)
-    h = 'make the x axis log'
-    parser.add_argument('--xlog', action='store_true', default=False, help=h)
-    h = 'make the y axis log'
-    parser.add_argument('--ylog', action='store_true', default=False, help=h)
-
-    args = parser.parse_args()
+    h = 'the labels to apply'
+    parser.add_argument('--labels', type=str, nargs='*', help=h)
+    
+    h = 'the offset on the x axis to apply'
+    parser.add_argument('--x_offset', type=float, default=0., help=h)
+    
+    h = 'the offset on the y axis to apply'
+    parser.add_argument('--y_offset', type=float, default=0., help=h)
+    
+    h = 'the output name to save the plot to'
+    parser.add_argument('--savefig', type=str, help=h)
+        
+    # parse and return the non-plotting arguments
+    args, plot_kwargs = master.parse_args()
  
-    plotMean(args)
+    args['plot_kwargs'] = plot_kwargs
+ 
+    plot_mean(args, master)
+
+#end main
+
+#-------------------------------------------------------------------------------
