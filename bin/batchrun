@@ -11,19 +11,20 @@ import argparse, os, sys
 from utils import utilities, mputils
 from flipper import flipperDict
 import tempfile, datetime
+import subprocess
 
-
-def taskFunc(params, valToUpdate, paramsToUpdate, className, runName):
+def taskFunc(params, valToUpdate, paramsToUpdate, className, runName, executable):
     """
-    Update the params
+    Update the params and run the function
     """
     
     try:
-        if className is not None:
-            classFunc = utilities.stringToFunction(className)
-            runFunc = getattr(classFunc, runName)
-        else:
-            runFunc = utilities.stringToFunction(runName)
+        if executable is None:
+            if className is not None:
+                classFunc = utilities.stringToFunction(className)
+                runFunc = getattr(classFunc, runName)
+            else:
+                runFunc = utilities.stringToFunction(runName)
     
         # update the parameter dictionary
         newParams = utilities.update_dict(params, valToUpdate[0], paramsToUpdate[0])
@@ -31,16 +32,26 @@ def taskFunc(params, valToUpdate, paramsToUpdate, className, runName):
             for i in range(1, len(valToUpdate)):
                 newParams = utilities.update_dict(newParams, valToUpdate[i], paramsToUpdate[i])
         
-        if className is not None:
-            # instantiate the class
-            c = classFunc(newParams)
+        if executable is None:
+            if className is not None:
+                # instantiate the class
+                c = classFunc(newParams)
     
-            # run the method, with class as first argument
-            runFunc(c)
+                # run the method, with class as first argument
+                runFunc(c)
+            else:
+                runFunc(newParams)
         else:
-            runFunc(newParams)
+            # initialize a named temporary file
+            tmp_params = tempfile.NamedTemporaryFile()
+            
+            # write out a parameter file
+            newParams.writeToFile(tmp_params.name)
+            
+            # now do the calling assuming calling convention is "executable params.dict"
+            subprocess.call([executable, tmp_params.name])
     except:
-        raise
+        raise ValueError("Error setting new parameters and calling")
 #end taskFunc
     
 #-------------------------------------------------------------------------------
@@ -61,7 +72,7 @@ def batchrun(p, args):
             
             i = [x[0][cnt] for x in p['update']] # this is a list of values to update to
             j = [x[1] for x in p['update']] # the corresponding values
-            master.enqueue(mputils.task(taskFunc, params, i, j, p['className'], p['runFunc'], num=cnt ))
+            master.enqueue(mputils.task(taskFunc, params, i, j, p['className'], p['runFunc'], p['executable'], num=cnt ))
     
         # start the work and wait until it finishes
         master.run()
@@ -71,7 +82,7 @@ def batchrun(p, args):
             for cnt in range(njobs):
                 i = [x[0][cnt] for x in p['update']] # this is a list of values to update to
                 j = [x[1] for x in p['update']] # the corresponding values
-                taskFunc(params, i, j, p['className'], p['runFunc'])
+                taskFunc(params, i, j, p['className'], p['runFunc'], p['executable'])
         except:
             raise
 #end batchrun
