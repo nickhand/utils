@@ -13,7 +13,7 @@ from flipper import flipperDict
 import tempfile, datetime
 import subprocess
 
-def taskFunc(params, valToUpdate, paramsToUpdate, className, runName, executable):
+def taskFunc(params, valToUpdate, paramsToUpdate, className, runName, executable, exec_args):
     """
     Update the params and run the function
     """
@@ -49,7 +49,9 @@ def taskFunc(params, valToUpdate, paramsToUpdate, className, runName, executable
             newParams.writeToFile(tmp_params.name)
             
             # now do the calling assuming calling convention is "executable params.dict"
-            subprocess.call([executable, tmp_params.name])
+            call_list = [executable, tmp_params.name]
+            if exec_args is not None: call_list += exec_args
+            subprocess.call(call_list)
     except:
         raise ValueError("Error setting new parameters and calling")
 #end taskFunc
@@ -62,6 +64,7 @@ def batchrun(p, args):
     params.readFromFile(p['paramFile'])    
 
     njobs = len(p['update'][0][0])
+    exec_args = p.get('executable_args', None)
     if args.np > 1:
     
         # initialize the multiprocessing master with nprocs
@@ -72,7 +75,7 @@ def batchrun(p, args):
             
             i = [x[0][cnt] for x in p['update']] # this is a list of values to update to
             j = [x[1] for x in p['update']] # the corresponding values
-            master.enqueue(mputils.task(taskFunc, params, i, j, p['className'], p['runFunc'], p['executable'], num=cnt ))
+            master.enqueue(mputils.task(taskFunc, params, i, j, p['className'], p['runFunc'], p['executable'], exec_args, num=cnt ))
     
         # start the work and wait until it finishes
         master.run()
@@ -82,7 +85,7 @@ def batchrun(p, args):
             for cnt in range(njobs):
                 i = [x[0][cnt] for x in p['update']] # this is a list of values to update to
                 j = [x[1] for x in p['update']] # the corresponding values
-                taskFunc(params, i, j, p['className'], p['runFunc'], p['executable'])
+                taskFunc(params, i, j, p['className'], p['runFunc'], p['executable'], exec_args)
         except:
             raise
 #end batchrun
