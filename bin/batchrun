@@ -53,8 +53,8 @@ def taskFunc(params, valToUpdate, paramsToUpdate, className, runName, executable
             if exec_args is not None: 
                 if not isinstance(exec_args, dict):
                     raise TypeError("Executable arguments should be specified as a `dict`")
-                for k, v in exec_args.iteritems()
-                call_list += ["--%s" %k, v]
+                for k, v in exec_args.iteritems():
+                    call_list += ["--%s" %k, v]
             subprocess.call(call_list)
     except:
         raise ValueError("Error setting new parameters and calling")
@@ -98,11 +98,21 @@ def batchrun(p, args):
 if __name__ == '__main__':
     
     # parse the input arguments
-    parser = argparse.ArgumentParser(description="run a given executable in batch mode, with specified parameters")
-    parser.add_argument('param_file', type=str, help='the parameter file') 
-    parser.add_argument('--np', type=int, default=1, help="number of processors to use")
-    parser.add_argument('-s', '--show', action='store_true', default=False, help='print stdout to the terminal')
-    parser.add_argument('--nopbar', action='store_true', default=False, help='do not show the progress bar')
+    desc="run a given executable in batch mode, with specified parameters"
+    parser = argparse.ArgumentParser(description=desc, 
+                            formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+                            
+    h = 'the parameter file'
+    parser.add_argument('param_file', type=str, help=h) 
+    
+    h = "number of processors to use"
+    parser.add_argument('--np', type=int, default=1, help=h)
+    
+    h = 'print stdout to the terminal'
+    parser.add_argument('-s', '--show', action='store_true', default=False, help=h)
+    
+    h = 'do not show the progress bar'
+    parser.add_argument('--nopbar', action='store_true', default=False, help=h)
   
     args = parser.parse_args()
 
