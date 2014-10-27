@@ -150,7 +150,7 @@ class worker(multiprocessing.Process):
             # and then raise the exception
             except:
                 self.exception.set()
-                raise Exception("Error trying to perform task.")
+                raise #Exception("Error trying to perform task.")
     #end run
 #endclass worker    
 
