@@ -57,7 +57,7 @@ def taskFunc(params, valToUpdate, paramsToUpdate, className, runName, executable
                     call_list += ["--%s" %k, v]
             subprocess.call(call_list)
     except:
-        raise ValueError("Error setting new parameters and calling")
+        raise 
 #end taskFunc
     
 #-------------------------------------------------------------------------------
