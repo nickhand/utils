@@ -144,6 +144,7 @@ class worker(multiprocessing.Process):
             # try to do the work
             try:  
                 answer = next_task()
+                if not isinstance(answer, tuple): answer = (answer, )
                 self.result_queue.put(answer + (next_task.num,))
                 
             # set the exception event so main process knows to exit, 
