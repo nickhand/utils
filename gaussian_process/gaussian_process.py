@@ -480,7 +480,7 @@ class GaussianProcess(model.model):
         """
         
         n = self.n_samples       
-        if (alpha == None):
+        if (alpha is None):
             try:
                 self.gradlogp = 0.9 * self.gradlogp
                 return (np.array(self.gradlogp))
@@ -557,7 +557,7 @@ class GaussianProcess(model.model):
             priorlogp = 0.
             
         # compute the log marginal likelihood
-        if (alpha == None):
+        if (alpha is None):
             logp = -(1.0e20 - priorlogp)
         else:
             logp = (-0.5 * np.dot(self.Y_mu.T, alpha) - 

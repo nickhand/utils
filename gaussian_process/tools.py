@@ -34,7 +34,7 @@ def l1_distances(X, Y=None):
         The array of componentwise L1 distances.
         
     """
-    if Y == None:
+    if Y is None:
         Y = X.copy()
     
     n_samples_X, n_features_X = X.shape
