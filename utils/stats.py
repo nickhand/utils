@@ -211,19 +211,19 @@ def normalize_covariance_matrix(covar):
 
     Parameters
     ----------
-    covar : numpy.ndarray, shape (N, nBins)
+    covar : numpy.ndarray, shape (N, N)
         the covariance matrix to normalize
     """
-    N, nBins = covar.shape
+    N, N = covar.shape
     corr = covar.copy()
     
     # normalize the covariance matrix now
-    variances = np.diag(corr)
-    i, j = np.triu_indices(nBins)
+    variances = np.diag(corr).copy()
+    i, j = np.triu_indices(N)
     corr[i, j] /= np.sqrt(variances[i])*np.sqrt(variances[j])
     
-    i, j = np.tril_indices(nBins, k=-1)
-    corr[i, j] /= np.sqrt(variances[i])*np.sqrt(variances[j])
+    i, j = np.tril_indices(N, k=-1)
+    corr[i, j] /= (np.sqrt(variances[i])*np.sqrt(variances[j]))
     
     return corr
 #end normalize_covariance_matrix
