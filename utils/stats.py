@@ -189,19 +189,14 @@ def random_variates_from_dist(x, dist, size=1, cumulative=False):
     else:
         F = 1.*dist/dist.max()
         
-    f_interp = InterpolatedUnivariateSpline(x, F)
+    spline = InterpolatedUnivariateSpline(x, F)
     xmin = np.amin(x)    
     xmax = np.amax(x)     
 
-    if size == 1:    
-        r = np.random.random(size=size)*(1.-xmin) + xmin
-        return sopt.bisect(lambda a: f_interp(a)-r, xmin, xmax)
-    else:
-        rands = np.random.random(size=size)*(1.-xmin) + xmin
-        ans = []
-        for r in rands:
-            ans.append(sopt.bisect(lambda a: f_interp(a)-r, xmin, xmax) )
-        return np.array(ans)
+    rands = np.random.random(size=size)
+    toret = np.array([sopt.bisect(lambda a: spline(a)-r, xmin, xmax) for r in rands])    
+    return toret if size > 1 else toret[0]
+
 #end random_variate_from_dist
 
 #-------------------------------------------------------------------------------
