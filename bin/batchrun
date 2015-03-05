@@ -54,7 +54,9 @@ def taskFunc(params, valToUpdate, paramsToUpdate, className, runName, executable
                 if not isinstance(exec_args, dict):
                     raise TypeError("Executable arguments should be specified as a `dict`")
                 for k, v in exec_args.iteritems():
-                    call_list += ["--%s" %k, v]
+                    call_list += ["--%s" %k]
+                    if v is not None:
+                        call_list += [v]
             subprocess.call(call_list)
     except:
         raise 
