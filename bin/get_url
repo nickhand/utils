@@ -16,7 +16,7 @@ from glob import glob
 def main(args):
     
     files = glob(args.pattern)
-    dir_base = "astro.berkeley.edu/~nhand/private/projects"
+    dir_base = "w.astro.berkeley.edu/~nhand/private/projects"
     url_base = "http://nbviewer.ipython.org/url"
     
     for f in files:
