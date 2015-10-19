@@ -24,8 +24,15 @@ Perform Levenberg-Marquardt least-squares minimization, based on MINPACK-1.
 	Madingley road, CB3 0HA, Cambridge, UK
 	koposov@ast.cam.ac.uk
 	Updated versions can be found at http://code.google.com/p/astrolibpy/source/browse/trunk/
+	
+ Bug Fixes: 
+    2011-08-26 NPMKuin (MSSL/UCL) some clarification in the documentation.
+    2013-11-19 NPMKuin (MSSL/UCL) changed import scipy.lib.blas[deprecated] to scipy.linalg.blas 
+                                  changed trace of array in qrsolve() to a copy since it needs to be writeable.
+ Known bugs:   
+    	
 
-								 DESCRIPTION
+		DESCRIPTION
 
  MPFIT uses the Levenberg-Marquardt technique to solve the
  least-squares problem.  In its typical use, MPFIT will be used to
@@ -93,30 +100,53 @@ Perform Levenberg-Marquardt least-squares minimization, based on MINPACK-1.
 	# If fjac==None then partial derivatives should not be
 	# computed.  It will always be None if MPFIT is called with default
 	# flag.
-	model = F(x, p)
+	model = F(x, p)  # put here the function for the model. 
+	#
 	# Non-negative status value means MPFIT should continue, negative means
 	# stop the calculation.
 	status = 0
+	# y(x) are the measured values, and err(x) are the errors in y. 
+	#
 	return([status, (y-model)/err]
 
  See below for applications with analytical derivatives.
 
- The keyword parameters X, Y, and ERR in the example above are
- suggestive but not required.  Any parameters can be passed to
- MYFUNCT by using the functkw keyword to MPFIT.  Use MPFITFUN and
- MPFITEXPR if you need ideas on how to do that.  The function *must*
- accept a parameter list, P.
+ Here 'x', 'y' and 'err' are the variables of the problem in the example above. 
+ Their names can be changed as a passed parameter to mpfit. So they are  
+ suggestive but not required.  Any set of variables can be passed to
+ MYFUNCT by using the functkw keyword to MPFIT. Parameters of the problem which 
+ need optimization are then passed using the parameter list 'p'. 
+ Use MPFITFUN and MPFITEXPR if you need ideas on how to do that.  
+ The function *must* accept a parameter list, 'p'.
 
  In general there are no restrictions on the number of dimensions in
  X, Y or ERR.  However the deviates *must* be returned in a
- one-dimensional Numeric array of type Float.
+ one-dimensional Numeric array of type Float. 
 
  User functions may also indicate a fatal error condition using the
  status return described above. If status is set to a number between
  -15 and -1 then MPFIT will stop the calculation and return to the caller.
 
+ To call the user function, you will need something like:
+ 
+   import mpfit
+   #import numpy.oldnumeric as Numeric
+   #
+   #... define your parameters
+   par = (p1,p2,p3,...)
+   #
+   #... get your data to define
+   xx = (ordinate)
+   yy = (measurements for each x)
+   e_yy = (errors in each y) 	
+   f = {'x':xx,'y':yy,'err':e_y}						ANALYTIC DERIVATIVES
+   #
+   Z = mpfit.mpfit('myfunct', par, functkw=f, quiet=True)
+ 
+ results returned in Z.status, Z.params, Z.perror, etc. 
 
-							ANALYTIC DERIVATIVES
+ And if you want to limit the parameters, add a list of disctionaries 
+ in the parinfo keyword with the limits, etcetera.
 
  In the search for the best-fit solution, MPFIT by default
  calculates derivatives numerically via a finite difference
@@ -260,9 +290,13 @@ Perform Levenberg-Marquardt least-squares minimization, based on MINPACK-1.
  the same letters; otherwise they are free to include their own
  fields within the PARINFO structure, and they will be ignored.
 
- PARINFO Example:
- parinfo = [{'value':0., 'fixed':0, 'limited':[0,0], 'limits':[0.,0.]} 
- 												for i in range(5)]
+ PARINFO Example with 5 parameters :
+ parinfo = [{'value':0., 'fixed':0, 'limited':[0,0], 'limits':[0.,0.]},\ 
+    {'value':0., 'fixed':0, 'limited':[0,0], 'limits':[0.,0.]},\
+    {'value':0., 'fixed':0, 'limited':[0,0], 'limits':[0.,0.]},\
+    {'value':0., 'fixed':0, 'limited':[0,0], 'limits':[0.,0.]},\
+    {'value':0., 'fixed':0, 'limited':[0,0], 'limits':[0.,0.]}]
+    
  parinfo[0]['fixed'] = 1
  parinfo[4]['limited'][0] = 1
  parinfo[4]['limits'][0]  = 50.
@@ -278,13 +312,13 @@ Perform Levenberg-Marquardt least-squares minimization, based on MINPACK-1.
 								   EXAMPLE
 
    import mpfit
-   import numpy.oldnumeric as Numeric
+   #import numpy.oldnumeric as Numeric
    x = arange(100, float)
    p0 = [5.7, 2.2, 500., 1.5, 2000.]
    y = ( p[0] + p[1]*[x] + p[2]*[x**2] + p[3]*sqrt(x) +
 		 p[4]*log(x))
    fa = {'x':x, 'y':y, 'err':err}
-   m = mpfit('myfunct', p0, functkw=fa)
+   m = mpfit.mpfit('myfunct', p0, functkw=fa)
    print 'status = ', m.status
    if (m.status <= 0): print 'error message = ', m.errmsg
    print 'parameters = ', m.params
@@ -410,7 +444,7 @@ Perform Levenberg-Marquardt least-squares minimization, based on MINPACK-1.
 
 import numpy
 import types
-import scipy.lib.blas
+import scipy.linalg.blas
 
 #	 Original FORTRAN documentation
 #	 **********
@@ -596,8 +630,8 @@ import scipy.lib.blas
 
 class mpfit:
 
-	blas_enorm32, = scipy.lib.blas.get_blas_funcs(['nrm2'],numpy.array([0],dtype=numpy.float32))
-	blas_enorm64, = scipy.lib.blas.get_blas_funcs(['nrm2'],numpy.array([0],dtype=numpy.float64))
+	blas_enorm32, = scipy.linalg.blas.get_blas_funcs(['nrm2'],numpy.array([0],dtype=numpy.float32))
+	blas_enorm64, = scipy.linalg.blas.get_blas_funcs(['nrm2'],numpy.array([0],dtype=numpy.float64))
 
 
 	def __init__(self, fcn, xall=None, functkw={}, parinfo=None,
@@ -794,7 +828,7 @@ class mpfit:
 
 	 .fnorm
 		The value of the summed squared residuals for the returned parameter
-		values.
+		values. (chi-square) 
 
 	 .covar
 		The covariance matrix for the set of parameters returned by MPFIT.
@@ -1163,8 +1197,7 @@ class mpfit:
 
 				# Determine the levenberg-marquardt parameter
 				catch_msg = 'calculating LM parameter (MPFIT_)'
-				[fjac, par, wa1, wa2] = self.lmpar(fjac, ipvt, diag, qtf,
-													 delta, wa1, wa2, par=par)
+				[fjac, par, wa1, wa2] = self.lmpar(fjac, ipvt, diag, qtf, delta, wa1, wa2, par=par)
 				# Store the direction p and x+p. Calculate the norm of p
 				wa1 = -wa1
 
@@ -1380,7 +1413,7 @@ class mpfit:
 				# Compute errors in parameters
 				catch_msg = 'computing parameter errors'
 				self.perror = numpy.zeros(nn, dtype=float)
-				d = numpy.diagonal(self.covar)
+				d = numpy.diagonal(self.covar).copy()
 				wh = (numpy.nonzero(d >= 0))[0]
 				if len(wh) > 0:
 					self.perror[wh] = numpy.sqrt(d[wh])
@@ -2076,8 +2109,8 @@ class mpfit:
 		# jacobian is rank-deficient, obtain a least-squares solution
 		nsing = n
 		wa1 = qtb.copy()
-		rthresh = numpy.max(numpy.abs(numpy.diagonal(r))) * machep
-		wh = (numpy.nonzero(numpy.abs(numpy.diagonal(r)) < rthresh))[0]
+		rthresh = numpy.max(numpy.abs(numpy.diagonal(r).copy())) * machep
+		wh = (numpy.nonzero(numpy.abs(numpy.diagonal(r).copy()) < rthresh))[0]
 		if len(wh) > 0:
 			nsing = wh[0]
 			wa1[wh[0]:] = 0
@@ -2263,7 +2296,7 @@ class mpfit:
 
 		if self.debug:
 			print 'Entering calc_covar...'
-		if numpy.rank(rr) != 2:
+		if numpy.array(rr).ndim != 2:
 			print 'ERROR: r must be a two-dimensional matrix'
 			return -1
 		s = rr.shape
@@ -2338,4 +2371,3 @@ class machar:
 		self.minlog = numpy.log(self.minnum)
 		self.rdwarf = numpy.sqrt(self.minnum*1.5) * 10
 		self.rgiant = numpy.sqrt(self.maxnum) * 0.1
-
